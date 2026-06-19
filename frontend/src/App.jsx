@@ -10,15 +10,22 @@ import AboutSection from './components/AboutPreview.jsx';
 import Footer from './components/Footer.jsx';
 import About from './Pages/About.jsx';
 import Dashboard from "./Pages/Dashboard.jsx";
-//import Alerts from "./Pages/Alerts.jsx";
+import Alerts from "./Pages/Alerts.jsx";
 import Analytics from "./Pages/Analytics.jsx";
+import MainLayout from './layouts/MainLayout.jsx';
+import LiveMonitoring from './Pages/LiveMonitoring.jsx';
 
 
 function App() {
   const location = useLocation(); 
 
-  // Hide navbar on About page
- const hideNavbarRoutes = ["/Pages/About", "/Pages/Dashboard", "/Pages/Alerts","/Pages/Analytics"];
+const hideNavbarRoutes = [
+  "/Pages/About",
+  "/Pages/Dashboard",
+  "/Pages/Alerts",
+  "/Pages/Analytics",
+  "/Pages/LiveMonitoring"
+];
  const hideNavbar = hideNavbarRoutes.includes(location.pathname);
 
 
@@ -26,27 +33,32 @@ function App() {
     <>
       {!hideNavbar && <Navbar />}
 
-      <Routes>
-        {/* HOME PAGE */}
-        <Route
-          path="/"
-          element={
-            <>
-              <HeroSection />
-              <DashboardPreview />
-              <AlertsOverview />
-              <AboutSection />
-              <Footer />
-            </>
-          }
-        />
+    <Routes>
+  {/* HOME PAGE */}
+  <Route
+    path="/"
+    element={
+      <>
+        <HeroSection />
+        <DashboardPreview />
+        <AlertsOverview />
+        <AboutSection />
+        <Footer />
+      </>
+    }
+  />
 
-        {/* ABOUT PAGE (Navbar hidden) */}
-        <Route path="/Pages/About" element={<About />} />
-        <Route path="/Pages/Dashboard" element={<Dashboard />} />
-        {/*<Route path="/Pages/Alerts" element={<Alerts />} />*/}
-        <Route path="/Pages/Analytics" element={<Analytics />} />
-      </Routes>
+  {/* About page */}
+  <Route path="/Pages/about" element={<About />} />
+
+  {/* Dashboard Layout Routes */}
+<Route element={<MainLayout />}>
+  <Route path="/Pages/Dashboard" element={<Dashboard />} />
+  <Route path="/Pages/Alerts" element={<Alerts />} />
+  <Route path="/Pages/Analytics" element={<Analytics />} />
+  <Route path="/Pages/LiveMonitoring" element={<LiveMonitoring />} />
+</Route>
+</Routes>
     </>
   );
 }

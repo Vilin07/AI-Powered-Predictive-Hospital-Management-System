@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function OverviewSection() {
-  const navigate = useNavigate(); // 🔥 THIS WAS MISSING
+  const navigate = useNavigate(); 
 
   return (
     <>
