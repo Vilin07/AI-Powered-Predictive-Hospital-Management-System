@@ -105,7 +105,7 @@ export default function Dashboard() {
     <div className="p-6 bg-gray-100 min-h-screen">
       {/* Header */}
       <h1 className="text-4xl font-bold mb-8 text-gray-800">
-        🏥 Predictive Hospital Management AI
+         Predictive Hospital Management AI
       </h1>
 
       {/* KPI Cards */}

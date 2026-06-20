@@ -48,15 +48,15 @@ const hideNavbarRoutes = [
     }
   />
 
-  {/* About page */}
-  <Route path="/Pages/about" element={<About />} />
+
 
   {/* Dashboard Layout Routes */}
 <Route element={<MainLayout />}>
-  <Route path="/Pages/Dashboard" element={<Dashboard />} />
-  <Route path="/Pages/Alerts" element={<Alerts />} />
-  <Route path="/Pages/Analytics" element={<Analytics />} />
-  <Route path="/Pages/LiveMonitoring" element={<LiveMonitoring />} />
+    <Route path="/Pages/Dashboard" element={<Dashboard />} />
+    <Route path="/Pages/Alerts" element={<Alerts />} />
+    <Route path="/Pages/Analytics" element={<Analytics />} />
+    <Route path="/Pages/LiveMonitoring" element={<LiveMonitoring />} />
+    <Route path="/Pages/about" element={<About />} />
 </Route>
 </Routes>
     </>

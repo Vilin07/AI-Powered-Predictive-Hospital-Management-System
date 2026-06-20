@@ -1,14 +1,16 @@
 import { Outlet, NavLink } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 export default function MainLayout() {
+  const navigate = useNavigate();
   return (
     <div className="flex min-h-screen bg-gray-100">
 
       {/* Sidebar */}
       <div className="w-64 bg-slate-900 text-white p-5 shadow-lg">
 
-        <h1 className="text-xl font-bold mb-8">
-          🏥 Hospital AI
+        <h1 className="text-xl font-bold mb-8 ">
+           <img style={{ cursor: 'pointer' }} onClick ={()=>{navigate('/')}} className="h-20 w-40 ml-6 rounded-4xl" src="/logo.png" alt="logo" />
         </h1>
 
         <nav className="space-y-3">
@@ -23,7 +25,7 @@ export default function MainLayout() {
               }`
             }
           >
-            📊 Dashboard
+             Dashboard
           </NavLink>
 
           <NavLink
@@ -36,7 +38,7 @@ export default function MainLayout() {
               }`
             }
           >
-            🚨 Alerts
+             Alerts
           </NavLink>
 
           <NavLink
@@ -49,7 +51,7 @@ export default function MainLayout() {
               }`
             }
           >
-            📈 Analytics
+            Analytics
           </NavLink>
 
           <NavLink
@@ -62,7 +64,7 @@ export default function MainLayout() {
               }`
             }
           >
-            📹 Live AI Monitoring
+             Live AI Monitoring
           </NavLink>
 
           <NavLink
@@ -75,7 +77,7 @@ export default function MainLayout() {
               }`
             }
           >
-            ℹ️ About
+             About
           </NavLink>
 
         </nav>
