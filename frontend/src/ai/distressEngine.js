@@ -1,23 +1,25 @@
 export const calculateDistressScore = (
-  faceCount
+  blinkScore,
+  jawOpenScore,
+  faceCount = 1
 ) => {
-  // No patient visible
   if (faceCount === 0) {
     return 0;
   }
 
-  // Normal monitoring
-  if (faceCount >= 1) {
-    return 20;
-  }
+  let score = 10;
 
-  return 0;
+  score += Math.round(blinkScore * 30);
+
+  score += Math.round(jawOpenScore * 60);
+
+  return Math.min(score, 100);
 };
 
 export const getRiskLevel = (
   distressScore
 ) => {
-  if (distressScore >= 75) {
+  if (distressScore >= 70) {
     return {
       label: "High Risk",
       color:
@@ -37,5 +39,5 @@ export const getRiskLevel = (
     label: "Low Risk",
     color:
       "bg-green-100 text-green-700 border-green-300",
-  };
+    };
 };

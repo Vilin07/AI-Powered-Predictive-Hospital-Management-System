@@ -2,20 +2,33 @@ import Webcam from "react-webcam";
 import { useState, useEffect, useRef } from "react";
 
 import {
-  loadFaceDetector,
-  detectFaces,
-} from "../ai/faceDetection";
+  loadFaceLandmarker,
+  detectFaceLandmarks,
+} from "../ai/faceLandmarker";
 
 import {
   calculateDistressScore,
   getRiskLevel,
 } from "../ai/distressEngine";
 
+import {
+  getEyeAspectRatio,
+} from "../ai/eyeDetection";
+
 export default function LiveMonitoring() {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
 
+  const [faceCount, setFaceCount] = useState(0);
+  const [eyeBlinkScore, setEyeBlinkScore] = useState(0);
+  const [jawOpenScore, setJawOpenScore] = useState(0);
   const [distressScore, setDistressScore] = useState(0);
+  const [eyeStatus, setEyeStatus] =
+  useState("Open");
+
+const [eyeEAR, setEyeEAR] =
+  useState(0);
+
   const [heartRate, setHeartRate] = useState(92);
   const [respirationRate, setRespirationRate] = useState(19);
 
@@ -24,12 +37,15 @@ export default function LiveMonitoring() {
 
   const [aiStatus, setAiStatus] =
     useState("Loading AI Models...");
+    const leftEyeIndices = [
+  33,
+  160,
+  158,
+  133,
+  153,
+  144,
+];
 
-  const [faces, setFaces] = useState([]);
-
-  // -----------------------------
-  // Simulated Vitals
-  // -----------------------------
   useEffect(() => {
     const interval = setInterval(() => {
       setHeartRate(
@@ -44,22 +60,19 @@ export default function LiveMonitoring() {
     return () => clearInterval(interval);
   }, []);
 
-  // -----------------------------
-  // Load Face Detector
-  // -----------------------------
   useEffect(() => {
     const initializeAI = async () => {
       try {
-        await loadFaceDetector();
+        await loadFaceLandmarker();
 
         setAiStatus(
-          "Face Detector Loaded Successfully"
+          "Face Landmarker Loaded"
         );
       } catch (error) {
         console.error(error);
 
         setAiStatus(
-          "Failed To Load Face Detector"
+          "Failed To Load AI Model"
         );
       }
     };
@@ -67,258 +80,291 @@ export default function LiveMonitoring() {
     initializeAI();
   }, []);
 
-  // -----------------------------
-  // Draw Face Boxes
-  // -----------------------------
-  const drawFaces = (faces) => {
-    const canvas = canvasRef.current;
-    const video = webcamRef.current?.video;
+const drawFaces = (faces) => {
+  const canvas = canvasRef.current;
+  const video = webcamRef.current?.video;
 
-    if (!canvas || !video) return;
+  if (!canvas || !video) return;
 
-    const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d");
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+  ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
 
-    ctx.clearRect(
-      0,
-      0,
-      canvas.width,
-      canvas.height
+  faces.forEach((landmarks) => {
+    if (!landmarks?.length) return;
+
+    const xs = landmarks.map(
+      (p) => p.x * canvas.width
     );
 
-    faces.forEach((face) => {
-      if (
-        !face.keypoints ||
-        face.keypoints.length === 0
-      )
-        return;
+    const ys = landmarks.map(
+      (p) => p.y * canvas.height
+    );
 
-      const xs = face.keypoints.map(
-        (p) => p.x
+
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+
+    const padding = 30;
+
+    // FACE BOX
+    ctx.strokeStyle = "#00FF00";
+    ctx.lineWidth = 4;
+
+    ctx.strokeRect(
+      minX - padding,
+      minY - padding,
+      maxX - minX + padding * 2,
+      maxY - minY + padding * 2
+    );
+
+    // LABEL
+    ctx.fillStyle = "#00FF00";
+    ctx.font = "20px Arial";
+
+    ctx.fillText(
+      "Patient",
+      minX - padding,
+      minY - padding - 10
+    );
+
+    // LANDMARK DOTS
+    ctx.fillStyle = "#FFFF00";
+
+    landmarks.forEach((point) => {
+      ctx.beginPath();
+
+      ctx.arc(
+        point.x * canvas.width,
+        point.y * canvas.height,
+        2,
+        0,
+        Math.PI * 2
       );
 
-      const ys = face.keypoints.map(
-        (p) => p.y
-      );
-
-      const minX = Math.min(...xs);
-      const maxX = Math.max(...xs);
-
-      const minY = Math.min(...ys);
-      const maxY = Math.max(...ys);
-
-      const faceWidth = maxX - minX;
-      const faceHeight = maxY - minY;
-
-      const paddingX = faceWidth * 1.5;
-      const paddingY = faceHeight * 2;
-
-      const x = minX - paddingX;
-      const y = minY - paddingY;
-
-      const width =
-        faceWidth + paddingX * 2;
-
-      const height =
-        faceHeight + paddingY * 2;
-
-      // Draw Face Rectangle
-      ctx.strokeStyle = "#00FF00";
-      ctx.lineWidth = 3;
-
-      ctx.strokeRect(
-        x,
-        y,
-        width,
-        height
-      );
-
-      // Label
-      ctx.fillStyle = "#00FF00";
-      ctx.font = "18px Arial";
-
-      ctx.fillText(
-        "Patient",
-        x,
-        y - 10
-      );
-
-      // Draw Keypoints
-      face.keypoints.forEach((point) => {
-        ctx.beginPath();
-
-        ctx.arc(
-          point.x,
-          point.y,
-          4,
-          0,
-          2 * Math.PI
-        );
-
-        ctx.fill();
-      });
+      ctx.fill();
     });
-  };
+  });
+};
 
-  // -----------------------------
-  // Face Detection Loop
-  // -----------------------------
   useEffect(() => {
-    const interval = setInterval(async () => {
-      const video = webcamRef.current?.video;
+    const interval = setInterval(() => {
+      const video =
+        webcamRef.current?.video;
 
       if (
         video &&
-        video.readyState === 4 &&
-        video.videoWidth > 0
+        video.readyState === 4
       ) {
-        const detectedFaces =
-          await detectFaces(video);
+        const results =
+          detectFaceLandmarks(video);
 
-        setFaces(detectedFaces);
+        if (!results) return;
 
-        drawFaces(detectedFaces);
+        const faces =
+          results.faceLandmarks || [];
 
-        const score =
-          calculateDistressScore(
-            detectedFaces.length
-          );
+        setFaceCount(faces.length);
 
-        setDistressScore(score);
+        drawFaces(faces);
+        if (faces.length > 0) {
+  const landmarks = faces[0];
+
+  const leftEye =
+    leftEyeIndices.map(
+      (index) => landmarks[index]
+    );
+
+  const ear =
+    getEyeAspectRatio(leftEye);
+
+  setEyeEAR(ear);
+
+  if (ear < 0.18) {
+    setEyeStatus("Closed");
+  } else {
+    setEyeStatus("Open");
+  }
+}
+
+        if (
+          results.faceBlendshapes &&
+          results.faceBlendshapes.length > 0
+        ) {
+          const blendShapes =
+            results.faceBlendshapes[0]
+              .categories;
+
+          const blink =
+            blendShapes.find(
+              (item) =>
+                item.categoryName ===
+                "eyeBlinkLeft"
+            )?.score || 0;
+
+          const jaw =
+            blendShapes.find(
+              (item) =>
+                item.categoryName ===
+                "jawOpen"
+            )?.score || 0;
+
+          setEyeBlinkScore(blink);
+          setJawOpenScore(jaw);
+
+          const score =
+            calculateDistressScore(
+              blink,
+              jaw,
+              faces.length
+            );
+
+          setDistressScore(score);
+        }
       }
-    }, 500);
+    }, 100);
 
-    return () => clearInterval(interval);
-  }, []);
+    return () =>
+      clearInterval(interval);
+  }, );
 
   const risk =
     getRiskLevel(distressScore);
 
   return (
     <div className="min-h-screen bg-slate-100 p-6">
-      <h1 className="text-3xl font-bold mb-6 text-slate-800">
+      <h1 className="text-3xl font-bold mb-6">
         AI Patient Monitoring Dashboard
       </h1>
 
       <div className="grid lg:grid-cols-2 gap-6">
 
-        {/* Camera Feed */}
         <div className="bg-black p-5 rounded-xl shadow-lg">
+
           <h2 className="text-xl font-semibold mb-4">
             Live Camera Feed
           </h2>
 
-          <div className="relative w-full ">
+          <div className="relative">
 
             <Webcam
-              ref={webcamRef}
-              audio={false}
-              mirrored={true}
-              screenshotFormat="image/jpeg"
-              videoConstraints={{
-                width: 1280,
-                height: 720,
-                facingMode: "user",
-              }}
-              onUserMedia={() =>
-                setCameraStatus(
-                  "Camera Connected"
-                )
-              }
-              onUserMediaError={() =>
-                setCameraStatus(
-                  "Camera Permission Denied"
-                )
-              }
-              className="rounded-xl w-full border border-slate-300"
-            />
+  ref={webcamRef}
+  audio={false}
+  mirrored={true}
+  screenshotFormat="image/jpeg"
+  videoConstraints={{
+    width: 1280,
+    height: 720,
+    facingMode: "user",
+  }}
+  onUserMedia={() => {
+    setCameraStatus("Camera Connected");
 
-            <canvas
-              ref={canvasRef}
-              width={1280}
-              height={720}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                zIndex: 999,
-                pointerEvents: "none",
-              }}
-            />
+    const canvas = canvasRef.current;
+
+    if (canvas) {
+      canvas.width = 1280;
+      canvas.height = 720;
+    }
+  }}
+  onUserMediaError={() =>
+    setCameraStatus(
+      "Camera Permission Denied"
+    )
+  }
+  className="rounded-xl w-full border"
+/>
+<canvas
+  ref={canvasRef}
+  width={1280}
+  height={720}
+  style={{
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    zIndex: 9999,
+    pointerEvents: "none",
+  }}
+/>
+
 
           </div>
 
-          <div className="mt-4 p-3 rounded-lg bg-slate-50 border">
+          <div className="mt-4 p-3 border bg-white text-black rounded-lg">
             <strong>Camera Status:</strong>{" "}
             {cameraStatus}
           </div>
+
         </div>
 
-        {/* AI Analysis */}
         <div className="bg-white p-5 rounded-xl shadow-lg">
+
           <h2 className="text-xl font-semibold mb-4">
             AI Analysis
           </h2>
 
           <div className="space-y-4">
 
-            <div className="p-4 rounded-lg bg-white-50 border border-black-200">
-              <strong>AI Status:</strong>{" "}
-              {aiStatus}
+            <div className="p-4 border rounded-lg">
+              <strong>AI Status:</strong> {aiStatus}
             </div>
 
-            <div className="p-4 rounded-lg bg-white-50 border border-black-200">
-              <strong>Detected Faces:</strong>{" "}
-              {faces.length}
+            <div className="p-4 border rounded-lg">
+              <strong>Detected Faces:</strong> {faceCount}
+            </div>
+            <div className="p-4 border rounded-lg">
+  <strong>Eye Status:</strong>{" "}
+  {eyeStatus}
+</div>
+
+<div className="p-4 border rounded-lg">
+  <strong>Eye EAR:</strong>{" "}
+  {eyeEAR.toFixed(3)}
+</div>
+
+            <div className="p-4 border rounded-lg">
+              <strong>Eye Blink Score:</strong>{" "}
+              {eyeBlinkScore.toFixed(2)}
             </div>
 
-            <div className="p-4 rounded-lg bg-slate-50 border">
-              <strong>Patient Status:</strong>{" "}
-              {faces.length > 0
-                ? "Patient Detected"
-                : "No Patient Detected"}
+            <div className="p-4 border rounded-lg">
+              <strong>Jaw Open Score:</strong>{" "}
+              {jawOpenScore.toFixed(2)}
             </div>
 
-            <div className="p-4 rounded-lg bg-slate-50 border">
+            <div className="p-4 border rounded-lg">
               <strong>Heart Rate:</strong>{" "}
               {heartRate} bpm
             </div>
 
-            <div className="p-4 rounded-lg bg-slate-50 border">
+            <div className="p-4 border rounded-lg">
               <strong>Respiration Rate:</strong>{" "}
               {respirationRate}/min
             </div>
 
-            <div className="p-4 rounded-lg bg-slate-50 border">
+            <div className="p-4 border rounded-lg">
               <strong>Distress Score:</strong>{" "}
               {distressScore}/100
-
-              <div className="w-full bg-slate-200 rounded-full h-3 mt-3">
-                <div
-                  className="h-3 rounded-full bg-red-500 transition-all duration-500"
-                  style={{
-                    width: `${distressScore}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="p-4 rounded-lg bg-slate-50 border">
-              <strong>Cough Count:</strong> 4
             </div>
 
             <div
-              className={`p-4 rounded-lg border font-semibold ${risk.color}`}
+              className={`p-4 border rounded-lg font-semibold ${risk.color}`}
             >
-              <strong>Risk Level:</strong>{" "}
-              {risk.label}
+              Risk Level: {risk.label}
             </div>
 
           </div>
+
         </div>
 
       </div>
