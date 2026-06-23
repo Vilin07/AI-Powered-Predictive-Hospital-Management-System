@@ -15,28 +15,57 @@ import {
   getEyeAspectRatio,
 } from "../ai/eyeDetection";
 
+import {
+  extractHeartRateSignal,
+  estimateHeartRate,
+} from "../ai/heartRateDetector";
+
+import {
+  extractBreathingSignal,
+  estimateRespirationRate,
+} from "../ai/respirationDetector";
+
+import {
+  startCoughDetection,
+  getCoughStatus,
+} from "../ai/coughDetector";
+
+import {
+  loadPoseLandmarker,
+  detectPose,
+} from "../ai/poseDetector";
+
+
 export default function LiveMonitoring() {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
+  const lastHeartUpdateRef = useRef(0);
+  const drowsyStartRef = useRef(null);
+  const lastAlertSoundRef = useRef(0);
 
   const [faceCount, setFaceCount] = useState(0);
   const [eyeBlinkScore, setEyeBlinkScore] = useState(0);
   const [jawOpenScore, setJawOpenScore] = useState(0);
   const [distressScore, setDistressScore] = useState(0);
-  const [eyeStatus, setEyeStatus] =
-  useState("Open");
+  const [recommendation, setRecommendation] = useState("Monitoring Patient...");
+  const [eyeStatus, setEyeStatus] = useState("Open");
+  const [drowsyStatus, setDrowsyStatus] = useState("Normal");
+  const [showAlert, setShowAlert] = useState(false);
+  const [criticalAlert, setCriticalAlert] = useState(false);
+  const [coughCount, setCoughCount] = useState(0);
+  const [coughStatus, setCoughStatus] = useState("None");
+  const [bodyStatus, setBodyStatus] = useState("Unknown");
 
-const [eyeEAR, setEyeEAR] =
-  useState(0);
+const [fallRisk, setFallRisk] = useState("Normal");
+  
 
-  const [heartRate, setHeartRate] = useState(92);
-  const [respirationRate, setRespirationRate] = useState(19);
+const [eyeEAR, setEyeEAR] = useState(0);
+const [heartRate, setHeartRate] = useState(75);
+const [respirationRate, setRespirationRate] = useState(19);
 
-  const [cameraStatus, setCameraStatus] =
-    useState("Connecting...");
+const [cameraStatus, setCameraStatus] = useState("Connecting...");
 
-  const [aiStatus, setAiStatus] =
-    useState("Loading AI Models...");
+const [aiStatus, setAiStatus] = useState("Loading AI Models...");
     const leftEyeIndices = [
   33,
   160,
@@ -46,24 +75,13 @@ const [eyeEAR, setEyeEAR] =
   144,
 ];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setHeartRate(
-        Math.floor(Math.random() * 40) + 70
-      );
 
-      setRespirationRate(
-        Math.floor(Math.random() * 10) + 15
-      );
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const initializeAI = async () => {
       try {
         await loadFaceLandmarker();
+        await loadPoseLandmarker();
 
         setAiStatus(
           "Face Landmarker Loaded"
@@ -79,6 +97,18 @@ const [eyeEAR, setEyeEAR] =
 
     initializeAI();
   }, []);
+
+  useEffect(() => {
+  startCoughDetection(
+    (count) => {
+      setCoughCount(count);
+
+      setCoughStatus(
+        getCoughStatus(count)
+      );
+    }
+  );
+}, []);
 
 const drawFaces = (faces) => {
   const canvas = canvasRef.current;
@@ -155,6 +185,7 @@ const drawFaces = (faces) => {
   });
 };
 
+
   useEffect(() => {
     const interval = setInterval(() => {
       const video =
@@ -169,12 +200,91 @@ const drawFaces = (faces) => {
 
         if (!results) return;
 
-        const faces =
-          results.faceLandmarks || [];
+ const faces =
+  results.faceLandmarks || [];
 
-        setFaceCount(faces.length);
+setFaceCount(faces.length);
 
-        drawFaces(faces);
+drawFaces(faces);
+
+
+//Pose Detection
+
+const poseResult =
+  detectPose(video);
+
+if (
+  poseResult?.landmarks?.length
+) {
+  const pose =
+    poseResult.landmarks[0];
+
+  const nose = pose[0];
+  const leftHip = pose[23];
+  const rightHip = pose[24];
+
+  const hipY =
+    (leftHip.y + rightHip.y) / 2;
+
+  if (
+    Math.abs(
+      nose.y - hipY
+    ) < 0.15
+  ) {
+    setBodyStatus(
+      "Lying Down"
+    );
+  } else {
+    setBodyStatus(
+      "Upright"
+    );
+  }
+}
+
+// HEART RATE DETECTION
+
+if (faces.length > 0) {
+  const signal = extractHeartRateSignal(
+    video,
+    faces[0]
+  );
+
+  console.log(
+    "Signal Length:",
+    signal?.length
+  );
+
+  const bpm =
+    estimateHeartRate(signal);
+
+  console.log(
+    "Heart Rate:",
+    bpm
+  );
+
+  const now = Date.now();
+
+  if (
+    bpm > 40 &&
+    bpm < 180 &&
+    now -
+      lastHeartUpdateRef.current >
+        2000
+  ) {
+    setHeartRate((prev) =>
+      prev === 0
+        ? bpm
+        : Math.round(
+            prev * 0.8 +
+              bpm * 0.2
+          )
+    );
+
+    lastHeartUpdateRef.current =
+      now;
+  }
+}
+
         if (faces.length > 0) {
   const landmarks = faces[0];
 
@@ -188,10 +298,55 @@ const drawFaces = (faces) => {
 
   setEyeEAR(ear);
 
-  if (ear < 0.18) {
-    setEyeStatus("Closed");
-  } else {
-    setEyeStatus("Open");
+if (ear < 0.15) {
+  setEyeStatus("Closed");
+
+  if (!drowsyStartRef.current) {
+    drowsyStartRef.current =
+      Date.now();
+  }
+
+  const closedDuration =
+    Date.now() -
+    drowsyStartRef.current;
+
+  if (closedDuration > 5000) {
+    setDrowsyStatus(
+      "DROWSY ⚠️"
+    );
+  }
+} else {
+  setEyeStatus("Open");
+
+  drowsyStartRef.current =
+    null;
+
+  setDrowsyStatus(
+    "Normal"
+  );
+}
+}
+
+
+// RESPIRATION DETECTION
+if (faces.length > 0) {
+  const breathingSignal =
+    extractBreathingSignal(
+      faces[0]
+    );
+
+  const breaths =
+    estimateRespirationRate(
+      breathingSignal
+    );
+
+  if (
+    breaths > 8 &&
+    breaths < 40
+  ) {
+    setRespirationRate(
+      breaths
+    );
   }
 }
 
@@ -228,19 +383,193 @@ const drawFaces = (faces) => {
             );
 
           setDistressScore(score);
+         if (
+  score > 60 ||
+  heartRate > 100 ||
+  drowsyStatus?.includes("DROWSY")
+) {
+  setCriticalAlert(true);
+
+  const now = Date.now();
+
+  if (
+    now -
+    lastAlertSoundRef.current >
+    10000
+  ) {
+    const audio = new Audio(
+      "/alert.mp3"
+    );
+
+    audio.play();
+
+    lastAlertSoundRef.current =
+      now;
+  }
+}
+else {
+  setCriticalAlert(false);
+}
+        // AI Recommendation Engine
+
+if (
+  score > 70 ||
+  heartRate > 100
+) {
+  setRecommendation(
+    "Immediate medical attention recommended."
+  );
+}
+else if (
+  drowsyStatus?.includes("DROWSY")
+) {
+  setRecommendation(
+    "Possible drowsiness detected. Wake-up assessment recommended."
+  );
+}
+else if (
+  score > 40
+) {
+  setRecommendation(
+    "Patient requires close observation."
+  );
+}
+else {
+  setRecommendation(
+    "Patient stable. Continue monitoring."
+  );
+}
         }
       }
     }, 100);
 
     return () =>
       clearInterval(interval);
-  }, );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[] );
 
   const risk =
     getRiskLevel(distressScore);
 
+useEffect(() => {
+  if (
+    drowsyStatus === "DROWSY ⚠️" ||
+    distressScore > 80
+  ) {
+    setShowAlert(true);
+  }
+}, [
+  drowsyStatus,
+  distressScore,
+]);
+
   return (
     <div className="min-h-screen bg-slate-100 p-6">
+      {criticalAlert && (
+  <div className="mb-6 bg-red-600 text-white rounded-lg p-4 shadow-lg">
+    <h2 className="font-bold text-lg">
+       Critical Patient Alert
+    </h2>
+
+    <p className="mt-1">
+      High distress detected.
+      Immediate medical attention required.
+    </p>
+  </div>
+)}
+      {showAlert && (
+<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-99999">
+    <div className="bg-white w-full max-w-md rounded-xl shadow-xl border">
+
+      {/* Header */}
+      <div className="border-b px-6 py-4">
+        <h2 className="text-xl font-semibold text-red-600">
+          Emergency Alert
+        </h2>
+      </div>
+
+      {/* Content */}
+      <div className="p-6">
+
+        <p className="text-gray-700 mb-5">
+          Abnormal patient vitals detected.
+          Immediate review is recommended.
+        </p>
+
+        <div className="space-y-3">
+
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-medium">
+              Heart Rate
+            </span>
+            <span>
+              {heartRate} bpm
+            </span>
+          </div>
+
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-medium">
+              Respiration Rate
+            </span>
+            <span>
+              {respirationRate}/min
+            </span>
+          </div>
+
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-medium">
+              Drowsiness
+            </span>
+            <span>
+              {drowsyStatus}
+            </span>
+          </div>
+
+          <div className="flex justify-between">
+            <span className="font-medium">
+              Distress Score
+            </span>
+            <span>
+              {distressScore}/100
+            </span>
+          </div>
+          <div className="p-4 border rounded-lg">
+  <strong>
+    AI Recommendation:
+  </strong>
+
+  <p className="mt-2 text-gray-700">
+    {recommendation}
+  </p>
+</div>
+
+        </div>
+
+      </div>
+
+      {/* Footer */}
+      <div className="border-t px-6 py-4 flex justify-end gap-3">
+
+        <button
+          onClick={() =>
+            setShowAlert(false)
+          }
+          className="px-4 py-2 border rounded-lg"
+        >
+          Dismiss
+        </button>
+
+        <button
+          className="px-4 py-2 bg-red-600 text-white rounded-lg"
+        >
+          Notify Staff
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+)}
       <h1 className="text-3xl font-bold mb-6">
         AI Patient Monitoring Dashboard
       </h1>
@@ -292,7 +621,7 @@ const drawFaces = (faces) => {
     left: 0,
     width: "100%",
     height: "100%",
-    zIndex: 9999,
+    zIndex: 10,
     pointerEvents: "none",
   }}
 />
@@ -327,6 +656,17 @@ const drawFaces = (faces) => {
   {eyeStatus}
 </div>
 
+<div
+  className={`p-4 border rounded-lg font-semibold ${
+    drowsyStatus.includes("DROWSY")
+      ? "bg-red-100 text-red-700"
+      : "bg-green-100 text-green-700"
+  }`}
+>
+  Drowsiness Status:
+  {drowsyStatus}
+</div>
+
 <div className="p-4 border rounded-lg">
   <strong>Eye EAR:</strong>{" "}
   {eyeEAR.toFixed(3)}
@@ -343,25 +683,75 @@ const drawFaces = (faces) => {
             </div>
 
             <div className="p-4 border rounded-lg">
-              <strong>Heart Rate:</strong>{" "}
+              <strong>Estimated Heart Rate:</strong>{" "}
               {heartRate} bpm
             </div>
+<div className="p-4 border rounded-lg">
+  <strong>rPPG Status:</strong>{" "}
+  Active
+</div>
+           <div className="p-4 border rounded-lg">
+  <strong>Respiration Rate:</strong>{" "}
+  {respirationRate}/min
 
-            <div className="p-4 border rounded-lg">
-              <strong>Respiration Rate:</strong>{" "}
-              {respirationRate}/min
-            </div>
+  <div className="p-4 border rounded-lg">
+  <strong>Body Position:</strong>{" "}
+  {bodyStatus}
+</div>
+  <div className="p-4 border rounded-lg">
+  <strong>Cough Count:</strong>{" "}
+  {coughCount}
+</div>
 
-            <div className="p-4 border rounded-lg">
-              <strong>Distress Score:</strong>{" "}
-              {distressScore}/100
-            </div>
+<div className="p-4 border rounded-lg">
+  <strong>Cough Status:</strong>{" "}
+  {coughStatus}
+</div>
 
-            <div
-              className={`p-4 border rounded-lg font-semibold ${risk.color}`}
-            >
-              Risk Level: {risk.label}
-            </div>
+  <div className="mt-2">
+    Status:
+    {
+      respirationRate < 10
+        ? " Critical Low"
+        : respirationRate > 25
+        ? " High"
+        : " Normal"
+    }
+  </div>
+</div>
+
+       <div className="p-4 border rounded-lg">
+  <strong>Distress Score:</strong>{" "}
+  {distressScore}/100
+</div>
+
+<div
+  className={`p-4 border rounded-lg ${
+    recommendation.includes(
+      "Immediate"
+    )
+      ? "bg-red-50 border-red-300"
+      : recommendation.includes(
+          "drowsiness"
+        )
+      ? "bg-yellow-50 border-yellow-300"
+      : "bg-green-50 border-green-300"
+  }`}
+>
+  <strong>
+    AI Recommendation
+  </strong>
+
+  <p className="mt-2">
+    {recommendation}
+  </p>
+</div>
+
+<div
+  className={`p-4 border rounded-lg font-semibold ${risk.color}`}
+>
+  Risk Level: {risk.label}
+</div>
 
           </div>
 
