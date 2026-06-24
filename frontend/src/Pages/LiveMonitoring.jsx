@@ -83,9 +83,9 @@ const [aiStatus, setAiStatus] = useState("Loading AI Models...");
         await loadFaceLandmarker();
         await loadPoseLandmarker();
 
-        setAiStatus(
-          "Face Landmarker Loaded"
-        );
+       setAiStatus(
+  "Face & Pose AI Loaded"
+);
       } catch (error) {
         console.error(error);
 
@@ -109,6 +109,8 @@ const [aiStatus, setAiStatus] = useState("Loading AI Models...");
     }
   );
 }, []);
+
+
 
 const drawFaces = (faces) => {
   const canvas = canvasRef.current;
@@ -208,16 +210,85 @@ setFaceCount(faces.length);
 drawFaces(faces);
 
 
-//Pose Detection
+// ======================
+// POSE DETECTION
+// ======================
 
-const poseResult =
-  detectPose(video);
+const poseResult = detectPose(video);
 
-if (
-  poseResult?.landmarks?.length
-) {
-  const pose =
-    poseResult.landmarks[0];
+if (poseResult?.landmarks?.length) {
+  const pose = poseResult.landmarks[0];
+
+  const canvas = canvasRef.current;
+  const ctx = canvas?.getContext("2d");
+
+  if (canvas && ctx) {
+    // Skeleton Connections
+    const connections = [
+      [11, 12],
+
+      [11, 13],
+      [13, 15],
+
+      [12, 14],
+      [14, 16],
+
+      [11, 23],
+      [12, 24],
+
+      [23, 24],
+
+      [23, 25],
+      [25, 27],
+
+      [24, 26],
+      [26, 28],
+    ];
+
+    // Draw Skeleton
+    ctx.strokeStyle = "#00FFFF";
+    ctx.lineWidth = 5;
+
+    connections.forEach(([start, end]) => {
+      const p1 = pose[start];
+      const p2 = pose[end];
+
+      if (!p1 || !p2) return;
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        p1.x * canvas.width,
+        p1.y * canvas.height
+      );
+
+      ctx.lineTo(
+        p2.x * canvas.width,
+        p2.y * canvas.height
+      );
+
+      ctx.stroke();
+    });
+
+    // Draw Joints
+    pose.forEach((point) => {
+      ctx.beginPath();
+
+      ctx.arc(
+        point.x * canvas.width,
+        point.y * canvas.height,
+        6,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fillStyle = "#00FFFF";
+
+      ctx.fill();
+    });
+  }
+
+  // Body Position Detection
 
   const nose = pose[0];
   const leftHip = pose[23];
@@ -227,19 +298,16 @@ if (
     (leftHip.y + rightHip.y) / 2;
 
   if (
-    Math.abs(
-      nose.y - hipY
-    ) < 0.15
+    Math.abs(nose.y - hipY) < 0.15
   ) {
-    setBodyStatus(
-      "Lying Down"
-    );
+    setBodyStatus("Lying Down");
+    setFallRisk("High");
   } else {
-    setBodyStatus(
-      "Upright"
-    );
+    setBodyStatus("Upright");
+    setFallRisk("Normal");
   }
 }
+
 
 // HEART RATE DETECTION
 
@@ -690,21 +758,44 @@ useEffect(() => {
   <strong>rPPG Status:</strong>{" "}
   Active
 </div>
-           <div className="p-4 border rounded-lg">
-  <strong>Respiration Rate:</strong>{" "}
+<div className="p-4 border rounded-lg">
+  <strong>Respiration Rate:</strong>
   {respirationRate}/min
 
-  <div className="p-4 border rounded-lg">
-  <strong>Body Position:</strong>{" "}
+  <div className="mt-2">
+    Status:
+    {
+      respirationRate < 10
+        ? " Critical Low"
+        : respirationRate > 25
+        ? " High"
+        : " Normal"
+    }
+  </div>
+</div>
+
+<div className="p-4 border rounded-lg">
+  <strong>Body Position:</strong>
   {bodyStatus}
 </div>
-  <div className="p-4 border rounded-lg">
-  <strong>Cough Count:</strong>{" "}
+<div
+  className={`p-4 border rounded-lg ${
+    fallRisk === "High"
+      ? "bg-red-100 text-red-700"
+      : "bg-green-100 text-green-700"
+  }`}
+>
+  <strong>Fall Risk:</strong>{" "}
+  {fallRisk}
+</div>
+
+<div className="p-4 border rounded-lg">
+  <strong>Cough Count:</strong>
   {coughCount}
 </div>
 
 <div className="p-4 border rounded-lg">
-  <strong>Cough Status:</strong>{" "}
+  <strong>Cough Status:</strong>
   {coughStatus}
 </div>
 
@@ -758,6 +849,6 @@ useEffect(() => {
         </div>
 
       </div>
-    </div>
+    
   );
 }
