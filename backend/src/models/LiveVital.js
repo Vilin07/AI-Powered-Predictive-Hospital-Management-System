@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const LiveVitalSchema = new mongoose.Schema({
+const liveVitalSchema = new mongoose.Schema({
     patientId: {
       type: String,
       required: true,
@@ -69,6 +69,5 @@ const LiveVitalSchema = new mongoose.Schema({
   
 },{timestamps: true})
 
-const LiveVital = mongoose.model('LiveVital', LiveVitalSchema);
-
-export default LiveVital;
+export default mongoose.models.LiveVital ||
+  mongoose.model("LiveVital", liveVitalSchema);

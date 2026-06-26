@@ -2,6 +2,7 @@ import Webcam from "react-webcam";
 import { useState, useEffect, useRef } from "react";
 
 import api from "../api/hospitalApi";
+import socket from "../socket/socket";
 
 
 import {
@@ -575,6 +576,38 @@ useEffect(() => {
   fallRisk,
   recommendation,
 ]);
+
+useEffect(() => {
+  socket.on("liveVitalsUpdated", (data) => {
+    console.log("📡 Live Vitals Received");
+    console.log(data);
+
+    // Update the UI with the latest values
+    setHeartRate(data.heartRate);
+    setRespirationRate(data.respirationRate);
+    setDistressScore(data.distressScore);
+    setEyeStatus(data.eyeStatus);
+    setBodyStatus(data.bodyStatus);
+    setFallRisk(data.fallRisk);
+    setRecommendation(data.recommendation);
+
+    if (data.drowsyStatus) {
+      setDrowsyStatus(data.drowsyStatus);
+    }
+
+    if (data.coughCount !== undefined) {
+      setCoughCount(data.coughCount);
+    }
+
+    if (data.coughStatus) {
+      setCoughStatus(data.coughStatus);
+    }
+  });
+
+  return () => {
+    socket.off("liveVitalsUpdated");
+  };
+}, []);
 
   return (
     <div className="min-h-screen bg-slate-100 p-6">

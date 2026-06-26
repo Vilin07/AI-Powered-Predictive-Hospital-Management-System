@@ -35,6 +35,5 @@ const patientSchema = new mongoose.Schema({
 },{timestamps: true})
 
 
-const Patient = mongoose.model("Patient", patientSchema);
-
-export default Patient;
+export default mongoose.models.Patient ||
+ mongoose.model("Patient", patientSchema);

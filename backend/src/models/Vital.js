@@ -21,6 +21,5 @@ const vitalSchema = new mongoose.Schema({
     drowsyStatus: String,
   },{timestamps: true})
 
-const Vital = mongoose.model("Vital", vitalSchema);
-
-export default Vital;
+export default mongoose.models.Vital ||
+  mongoose.model("Vital", vitalSchema);

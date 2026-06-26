@@ -1,4 +1,6 @@
-import LiveVital from "../models/LiveVital.js";
+import LiveVital from "../models/liveVital.js";
+import { generateAlert } from "../services/alertService.js";
+import { getIO } from "../socket/socket.js";
 
 // Create or Update Live Vitals
 export const updateLiveVital = async (req, res) => {
@@ -17,8 +19,14 @@ export const updateLiveVital = async (req, res) => {
       }
     );
 
-    res.status(200).json(updatedVital);
+await generateAlert(updatedVital);
 
+// Emit live update to all connected dashboards
+const io = getIO();
+
+io.emit("liveVitalsUpdated", updatedVital);
+
+res.status(200).json(updatedVital);
   } catch (error) {
     res.status(500).json({
       message: error.message,
