@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import patientRoutes from "./routes/patientRoutes.js";
 import vitalRoutes from "./routes/vitalRoutes.js";
+import liveVitalRoutes from "./routes/liveVitalRoutes.js";
 
 dotenv.config();
 
@@ -21,6 +22,11 @@ app.use(
 app.use(
   "/api/vitals",
   vitalRoutes
+);
+
+app.use(
+  "/api/live-vitals",
+  liveVitalRoutes
 );
 
 app.get("/", (req, res) => {

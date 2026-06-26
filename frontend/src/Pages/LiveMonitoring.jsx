@@ -1,6 +1,9 @@
 import Webcam from "react-webcam";
 import { useState, useEffect, useRef } from "react";
 
+import api from "../api/hospitalApi";
+
+
 import {
   loadFaceLandmarker,
   detectFaceLandmarks,
@@ -75,7 +78,33 @@ const [aiStatus, setAiStatus] = useState("Loading AI Models...");
   144,
 ];
 
+const sendLiveVitals = async () => {
+  try {
+    await api.post("/live-vitals", {
+      patientId: "P1001",
 
+      heartRate,
+
+      respirationRate,
+
+      distressScore,
+
+      eyeStatus,
+
+      bodyStatus,
+
+      fallRisk,
+
+      recommendation,
+    });
+
+    console.log("Live vitals sent successfully");
+  } catch (error) {
+  console.log(error);
+  console.log(error.message);
+  console.log(error.response);
+}
+};
 
   useEffect(() => {
     const initializeAI = async () => {
@@ -529,6 +558,22 @@ useEffect(() => {
 }, [
   drowsyStatus,
   distressScore,
+]);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    sendLiveVitals();
+  }, 5000);
+
+  return () => clearInterval(interval);
+}, [
+  heartRate,
+  respirationRate,
+  distressScore,
+  eyeStatus,
+  bodyStatus,
+  fallRisk,
+  recommendation,
 ]);
 
   return (
