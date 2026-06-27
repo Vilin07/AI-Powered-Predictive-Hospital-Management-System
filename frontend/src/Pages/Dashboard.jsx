@@ -11,86 +11,67 @@ import {
   Cell,
 } from "recharts";
 
+import socket from "../socket/socket";
+
+import {
+  getDashboardAnalytics,
+  getLiveVitals,
+  getAlerts,
+} from "../api/dashboardApi";
+
+
 export default function Dashboard() {
-  const [patients, setPatients] = useState([]);
-  const [alerts, setAlerts] = useState([]);
-  const [loading, setLoading] = useState(true);
+const [analytics, setAnalytics] = useState(null);
+const [patients, setPatients] = useState([]);
+const [alerts, setAlerts] = useState([]);
+const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability
     fetchDashboard();
   }, []);
 
-  const fetchDashboard = async () => {
+  useEffect(() => {
+  socket.on("liveVitalsUpdated", async () => {
+    console.log("🔄 Dashboard updating...");
+
     try {
-      const patientData = [
-        {
-          _id: 1,
-          name: "Patient 101",
-          heartRate: 95,
-          respirationRate: 18,
-          coughScore: 3,
-          distressScore: 45,
-          riskLevel: "Low",
-        },
-        {
-          _id: 2,
-          name: "Patient 102",
-          heartRate: 120,
-          respirationRate: 30,
-          coughScore: 8,
-          distressScore: 82,
-          riskLevel: "High",
-        },
-        {
-          _id: 3,
-          name: "Patient 103",
-          heartRate: 105,
-          respirationRate: 24,
-          coughScore: 5,
-          distressScore: 68,
-          riskLevel: "Medium",
-        },
-      ];
+      const analyticsData = await getDashboardAnalytics();
+      const vitalsData = await getLiveVitals();
+      const alertsData = await getAlerts();
 
-      const alertData = [
-        {
-          _id: 1,
-          type: "Breathing Distress",
-          patientName: "Patient 102",
-          timestamp: "2 minutes ago",
-        },
-        {
-          _id: 2,
-          type: "Frequent Coughing",
-          patientName: "Patient 103",
-          timestamp: "5 minutes ago",
-        },
-      ];
-
-      setPatients(patientData);
-      setAlerts(alertData);
+      setAnalytics(analyticsData);
+      setPatients(vitalsData);
+      setAlerts(alertsData);
       setLoading(false);
     } catch (err) {
       console.error(err);
     }
+  });
+
+  return () => {
+    socket.off("liveVitalsUpdated");
   };
+}, []);
 
-  const distressTrend = [
-    { day: "Mon", score: 40 },
-    { day: "Tue", score: 55 },
-    { day: "Wed", score: 48 },
-    { day: "Thu", score: 70 },
-    { day: "Fri", score: 82 },
-    { day: "Sat", score: 65 },
-    { day: "Sun", score: 50 },
-  ];
 
-  const alertDistribution = [
-    { name: "High", value: 5 },
-    { name: "Medium", value: 8 },
-    { name: "Low", value: 12 },
-  ];
+const fetchDashboard = async () => {
+  try {
+    const analyticsData = await getDashboardAnalytics();
+    const vitalsData = await getLiveVitals();
+    const alertsData = await getAlerts();
+
+    setAnalytics(analyticsData);
+    setPatients(vitalsData);
+    setAlerts(alertsData);
+
+    setLoading(false);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+
 
   const COLORS = ["#ef4444", "#f59e0b", "#22c55e"];
 
@@ -114,25 +95,21 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl shadow-lg p-5">
           <h3 className="text-gray-500">Total Patients</h3>
           <p className="text-4xl font-bold text-blue-600">
-            {patients.length}
+        {analytics?.totalPatients || 0}
           </p>
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-5">
           <h3 className="text-gray-500">Active Alerts</h3>
           <p className="text-4xl font-bold text-red-600">
-            {alerts.length}
+        {analytics?.activeAlerts || 0}
           </p>
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-5">
           <h3 className="text-gray-500">Critical Patients</h3>
           <p className="text-4xl font-bold text-red-700">
-            {
-              patients.filter(
-                (p) => p.riskLevel === "High"
-              ).length
-            }
+            {analytics?.criticalPatients || 0}
           </p>
         </div>
 
@@ -142,6 +119,46 @@ export default function Dashboard() {
             96.4%
           </p>
         </div>
+        <div className="bg-white rounded-xl shadow-lg p-5">
+    <h3 className="text-gray-500">
+        Avg Heart Rate
+    </h3>
+
+    <p className="text-4xl font-bold text-red-500">
+        {analytics?.averageHeartRate} bpm
+    </p>
+</div>
+
+<div className="bg-white rounded-xl shadow-lg p-5">
+    <h3 className="text-gray-500">
+        Avg Respiration
+    </h3>
+
+    <p className="text-4xl font-bold text-blue-500">
+        {analytics?.averageRespirationRate}/min
+    </p>
+</div>
+<div className="bg-white rounded-xl shadow-lg p-5">
+    <h3 className="text-gray-500">
+        Avg Distress
+    </h3>
+
+    <p className="text-4xl font-bold text-orange-500">
+        {analytics?.averageDistressScore}
+    </p>
+</div>
+<div className="bg-white rounded-xl shadow-lg p-5">
+  <div className="mt-3 text-green-600 font-semibold">
+🟢 Live
+</div>
+    <h3 className="text-gray-500">
+        Online Patients
+    </h3>
+
+    <p className="text-4xl font-bold text-green-500">
+        {analytics?.onlinePatients}
+    </p>
+</div>
       </div>
 
       {/* Charts Section */}
@@ -153,16 +170,16 @@ export default function Dashboard() {
           </h2>
 
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={distressTrend}>
-              <XAxis dataKey="day" />
+            <LineChart data={analytics?.distressTrend || []}>
+              <XAxis dataKey="time" />
               <YAxis />
               <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="score"
-                stroke="#2563eb"
-                strokeWidth={3}
-              />
+           <Line
+    type="monotone"
+    dataKey="value"
+    stroke="#2563eb"
+    strokeWidth={3}
+/>
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -175,20 +192,21 @@ export default function Dashboard() {
 
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
-              <Pie
-                data={alertDistribution}
+              
+               <Pie
+                data={analytics?.alertDistribution || []}
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
                 dataKey="value"
                 label
               >
-                {alertDistribution.map((entry, index) => (
-                  <Cell
-                    key={index}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
+              {analytics?.alertDistribution?.map((entry, index) => (
+    <Cell
+        key={index}
+        fill={COLORS[index % COLORS.length]}
+    />
+))}
               </Pie>
               <Tooltip />
             </PieChart>
@@ -244,7 +262,7 @@ export default function Dashboard() {
               >
                 <div className="flex justify-between">
                   <h3 className="text-xl font-bold">
-                    {p.name}
+                 {p.patientId}
                   </h3>
 
                   <span
@@ -264,7 +282,7 @@ export default function Dashboard() {
                   </p>
 
                   <p>
-                    🤧 Cough Score: {p.coughScore}
+                    🤧 Cough Score: {p.coughCount}
                   </p>
 
                   <p>

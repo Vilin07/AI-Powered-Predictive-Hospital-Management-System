@@ -81,30 +81,32 @@ const [aiStatus, setAiStatus] = useState("Loading AI Models...");
 
 const sendLiveVitals = async () => {
   try {
-    await api.post("/live-vitals", {
+    console.log("📤 Sending vitals to backend...");
+
+    const response = await api.post("/live-vitals", {
       patientId: "P1001",
 
       heartRate,
-
       respirationRate,
-
       distressScore,
-
       eyeStatus,
-
       bodyStatus,
-
       fallRisk,
-
       recommendation,
     });
 
-    console.log("Live vitals sent successfully");
+    console.log("✅ Backend Response:");
+    console.log(response.data);
+
   } catch (error) {
-  console.log(error);
-  console.log(error.message);
-  console.log(error.response);
-}
+    console.log("❌ Error sending vitals");
+
+    console.log(error);
+
+    console.log(error.message);
+
+    console.log(error.response);
+  }
 };
 
   useEffect(() => {
@@ -579,29 +581,10 @@ useEffect(() => {
 
 useEffect(() => {
   socket.on("liveVitalsUpdated", (data) => {
-    console.log("📡 Live Vitals Received");
+    console.log("================================");
+    console.log("📡 SOCKET EVENT RECEIVED");
     console.log(data);
-
-    // Update the UI with the latest values
-    setHeartRate(data.heartRate);
-    setRespirationRate(data.respirationRate);
-    setDistressScore(data.distressScore);
-    setEyeStatus(data.eyeStatus);
-    setBodyStatus(data.bodyStatus);
-    setFallRisk(data.fallRisk);
-    setRecommendation(data.recommendation);
-
-    if (data.drowsyStatus) {
-      setDrowsyStatus(data.drowsyStatus);
-    }
-
-    if (data.coughCount !== undefined) {
-      setCoughCount(data.coughCount);
-    }
-
-    if (data.coughStatus) {
-      setCoughStatus(data.coughStatus);
-    }
+    console.log("================================");
   });
 
   return () => {

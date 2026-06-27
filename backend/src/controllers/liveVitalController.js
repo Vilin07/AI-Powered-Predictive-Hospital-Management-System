@@ -24,9 +24,13 @@ await generateAlert(updatedVital);
 // Emit live update to all connected dashboards
 const io = getIO();
 
+console.log("📡 Sending LiveVitals Event...");
+console.log(updatedVital);
+
 io.emit("liveVitalsUpdated", updatedVital);
 
 res.status(200).json(updatedVital);
+
   } catch (error) {
     res.status(500).json({
       message: error.message,

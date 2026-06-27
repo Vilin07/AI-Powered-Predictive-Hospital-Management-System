@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import http from "http";
+import cors from "cors";
 
 import connectDB from "./config/db.js";
 import patientRoutes from "./routes/patientRoutes.js";
@@ -14,6 +15,12 @@ dotenv.config();
 connectDB();
 
 const app = express();
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
