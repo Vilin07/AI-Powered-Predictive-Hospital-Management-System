@@ -27,7 +27,9 @@ const io = getIO();
 console.log("📡 Sending LiveVitals Event...");
 console.log(updatedVital);
 
-io.emit("liveVitalsUpdated", updatedVital);
+io.emit("liveVitalsUpdated", {
+  ...updatedVital.toObject(),
+});
 
 res.status(200).json(updatedVital);
 

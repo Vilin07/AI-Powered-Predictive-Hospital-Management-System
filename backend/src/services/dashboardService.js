@@ -18,6 +18,18 @@ export const getDashboardAnalytics = async () => {
     updatedAt: 1,
   });
 
+  console.log("========== LIVE VITALS ==========");
+
+liveVitals.forEach((p) => {
+  console.log({
+    patientId: p.patientId,
+    updatedAt: p.updatedAt,
+    lastUpdated: p.lastUpdated,
+  });
+});
+
+console.log("===============================");
+
   const criticalPatients = liveVitals.filter(
     p => p.riskLevel === "High"
   ).length;
@@ -37,6 +49,23 @@ export const getDashboardAnalytics = async () => {
   const drowsyPatients = liveVitals.filter(
     p => p.drowsyStatus === "DROWSY ⚠️"
   ).length;
+
+// Consider a patient online if updated in the last 30 seconds
+const thirtySecondsAgo = new Date(Date.now() - 30000);
+
+const recentPatients = await LiveVital.find({
+  lastUpdated: {
+    $gte: thirtySecondsAgo,
+  },
+});
+
+const onlinePatients = recentPatients.length;
+
+console.log("========== ONLINE PATIENTS ==========");
+console.log("Current Time :", new Date());
+console.log("Checking After :", thirtySecondsAgo);
+console.log("Online :", recentPatients);
+console.log("=====================================");
 
   let averageHeartRate = 0;
   let averageRespirationRate = 0;
@@ -63,13 +92,6 @@ export const getDashboardAnalytics = async () => {
       ) / liveVitals.length;
   }
 
-  const onlinePatients =
-    liveVitals.filter(
-      p =>
-        Date.now() -
-          new Date(p.lastUpdated).getTime() <
-        10000
-    ).length;
 
   const distressTrend =
     liveVitals.map(p => ({

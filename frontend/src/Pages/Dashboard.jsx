@@ -31,22 +31,31 @@ const [loading, setLoading] = useState(true);
     fetchDashboard();
   }, []);
 
-  useEffect(() => {
-  socket.on("liveVitalsUpdated", async () => {
-    console.log("🔄 Dashboard updating...");
+useEffect(() => {
+  socket.on("liveVitalsUpdated", (updatedPatient) => {
 
-    try {
-      const analyticsData = await getDashboardAnalytics();
-      const vitalsData = await getLiveVitals();
-      const alertsData = await getAlerts();
+    console.log("📡 Dashboard received");
+    console.log(updatedPatient);
 
-      setAnalytics(analyticsData);
-      setPatients(vitalsData);
-      setAlerts(alertsData);
-      setLoading(false);
-    } catch (err) {
-      console.error(err);
-    }
+    // Update Patient List instantly
+    setPatients((prev) =>
+      prev.map((patient) =>
+        patient.patientId === updatedPatient.patientId
+          ? updatedPatient
+          : patient
+      )
+    );
+
+    // Refresh Analytics only
+    getDashboardAnalytics().then((data) => {
+      setAnalytics(data);
+    });
+
+    // Refresh Alerts only
+    getAlerts().then((data) => {
+      setAlerts(data);
+    });
+
   });
 
   return () => {
@@ -225,17 +234,27 @@ const fetchDashboard = async () => {
             key={alert._id}
             className="border-l-4 border-red-500 bg-red-50 p-4 mb-3 rounded-lg"
           >
-            <p className="font-semibold text-red-700">
-              {alert.type}
-            </p>
+           <p className="font-bold text-red-700">
+{alert.type}
+</p>
 
-            <p>
-              Patient: {alert.patientName}
-            </p>
+<p>
+Patient ID :
+<strong>{alert.patientId}</strong>
+</p>
 
-            <p className="text-sm text-gray-500">
-              {alert.timestamp}
-            </p>
+<p>
+{alert.message}
+</p>
+
+<p>
+Priority :
+<strong>{alert.priority}</strong>
+</p>
+
+<p className="text-gray-500">
+{new Date(alert.createdAt).toLocaleString()}
+</p>
           </div>
         ))}
       </div>
@@ -247,6 +266,7 @@ const fetchDashboard = async () => {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {console.log("Dashboard Patients:", patients)}
           {patients.map((p) => {
             const riskColor =
               p.riskLevel === "High"
@@ -271,25 +291,39 @@ const fetchDashboard = async () => {
                     {p.riskLevel}
                   </span>
                 </div>
+<div className="mt-4 space-y-2">
 
-                <div className="mt-4 space-y-2">
-                  <p>
-                    ❤️ Heart Rate: {p.heartRate}
-                  </p>
+<p>❤️ Heart Rate : {p.heartRate}</p>
 
-                  <p>
-                    🫁 Respiration Rate: {p.respirationRate}
-                  </p>
+<p>🫁 Respiration : {p.respirationRate}</p>
 
-                  <p>
-                    🤧 Cough Score: {p.coughCount}
-                  </p>
+<p>⚠️ Distress : {p.distressScore}</p>
 
-                  <p>
-                    ⚠️ Distress Score: {p.distressScore}
-                  </p>
-                </div>
+<p>👁 Eye : {p.eyeStatus}</p>
 
+<p>😴 Drowsy : {p.drowsyStatus}</p>
+
+<p>🤧 Cough : {p.coughCount}</p>
+
+<p>🚶 Body : {p.bodyStatus}</p>
+
+<p>🛑 Fall Risk : {p.fallRisk}</p>
+
+<p className="text-blue-600">
+
+{p.recommendation}
+
+</p>
+
+<p className="text-gray-500 text-sm">
+
+Updated :
+
+{new Date(p.lastUpdated).toLocaleTimeString()}
+
+</p>
+
+</div>
                 <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
                   View Details
                 </button>

@@ -84,16 +84,32 @@ const sendLiveVitals = async () => {
     console.log("📤 Sending vitals to backend...");
 
     const response = await api.post("/live-vitals", {
-      patientId: "P1001",
 
-      heartRate,
-      respirationRate,
-      distressScore,
-      eyeStatus,
-      bodyStatus,
-      fallRisk,
-      recommendation,
-    });
+    patientId: "P1001",
+
+    heartRate,
+
+    respirationRate,
+
+    distressScore,
+
+    eyeStatus,
+
+    drowsyStatus,
+
+    coughCount,
+
+    coughStatus,
+
+    bodyStatus,
+
+    fallRisk,
+
+    riskLevel: risk.label,
+
+    recommendation,
+
+});
 
     console.log("✅ Backend Response:");
     console.log(response.data);
@@ -566,7 +582,7 @@ useEffect(() => {
 useEffect(() => {
   const interval = setInterval(() => {
     sendLiveVitals();
-  }, 5000);
+  }, 2000);
 
   return () => clearInterval(interval);
 }, [
