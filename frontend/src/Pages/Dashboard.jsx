@@ -32,29 +32,43 @@ const [loading, setLoading] = useState(true);
   }, []);
 
 useEffect(() => {
-  socket.on("liveVitalsUpdated", (updatedPatient) => {
+  socket.on("connect", () => {
+    console.log("✅ Dashboard Connected");
+    console.log(socket.id);
+  });
 
+  socket.on("disconnect", () => {
+    console.log("❌ Dashboard Disconnected");
+  });
+
+  return () => {
+    socket.off("connect");
+    socket.off("disconnect");
+  };
+}, []);
+
+useEffect(() => {
+  socket.on("liveVitalsUpdated", async (data) => {
+
+    console.log("==================================");
     console.log("📡 Dashboard received");
-    console.log(updatedPatient);
+    console.log(data);
 
-    // Update Patient List instantly
-    setPatients((prev) =>
-      prev.map((patient) =>
-        patient.patientId === updatedPatient.patientId
-          ? updatedPatient
-          : patient
-      )
-    );
+    const vitalsData = await getLiveVitals();
 
-    // Refresh Analytics only
-    getDashboardAnalytics().then((data) => {
-      setAnalytics(data);
-    });
+    console.log("Fresh Data From API");
+    console.log(vitalsData);
 
-    // Refresh Alerts only
-    getAlerts().then((data) => {
-      setAlerts(data);
-    });
+    setPatients(vitalsData);
+
+    console.log("==================================");
+
+    const analyticsData = await getDashboardAnalytics();
+    const alertsData = await getAlerts();
+
+    setAnalytics(analyticsData);
+    setAlerts(alertsData);
+    setLoading(false);
 
   });
 
@@ -62,7 +76,6 @@ useEffect(() => {
     socket.off("liveVitalsUpdated");
   };
 }, []);
-
 
 const fetchDashboard = async () => {
   try {
@@ -95,111 +108,260 @@ const fetchDashboard = async () => {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       {/* Header */}
-      <h1 className="text-4xl font-bold mb-8 text-gray-800">
-         Predictive Hospital Management AI
-      </h1>
+    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8">
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-lg p-5">
-          <h3 className="text-gray-500">Total Patients</h3>
-          <p className="text-4xl font-bold text-blue-600">
-        {analytics?.totalPatients || 0}
-          </p>
+    <div className="flex items-center justify-between">
+
+        <div>
+
+            <h1 className="text-3xl font-bold text-slate-800">
+                Predictive Hospital Management AI
+            </h1>
+
+            <p className="text-gray-500 mt-1">
+                Real-Time Patient Monitoring Dashboard
+            </p>
+
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-5">
-          <h3 className="text-gray-500">Active Alerts</h3>
-          <p className="text-4xl font-bold text-red-600">
-        {analytics?.activeAlerts || 0}
-          </p>
+        <div className="text-right">
+
+            <p className="text-sm text-gray-500">
+                System Status
+            </p>
+
+            <div className="flex items-center justify-end gap-2 mt-1">
+
+                <span className="w-3 h-3 rounded-full bg-green-500"></span>
+
+                <span className="font-semibold text-green-700">
+                    Connected
+                </span>
+
+            </div>
+
+            <p className="text-xs text-gray-400 mt-2">
+                Last Updated
+            </p>
+
+            <p className="text-sm font-medium text-gray-700">
+                {new Date().toLocaleTimeString()}
+            </p>
+
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-5">
-          <h3 className="text-gray-500">Critical Patients</h3>
-          <p className="text-4xl font-bold text-red-700">
+    </div>
+
+</div>
+
+      
+{/* KPI Cards */}
+
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+    {/* Total Patients */}
+
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+
+        <p className="text-sm uppercase tracking-wide text-gray-500">
+            Total Patients
+        </p>
+
+        <h2 className="text-4xl font-bold text-slate-800 mt-3">
+            {analytics?.totalPatients || 0}
+        </h2>
+
+        <p className="text-sm text-gray-400 mt-4">
+            Registered Patients
+        </p>
+
+    </div>
+
+    {/* Active Alerts */}
+
+    <div className="bg-white rounded-xl border border-red-200 shadow-sm p-6">
+
+        <p className="text-sm uppercase tracking-wide text-gray-500">
+            Active Alerts
+        </p>
+
+        <h2 className="text-4xl font-bold text-red-600 mt-3">
+            {analytics?.activeAlerts || 0}
+        </h2>
+
+        <p className="text-sm text-red-500 mt-4">
+            Requires Immediate Attention
+        </p>
+
+    </div>
+
+    {/* Critical Patients */}
+
+    <div className="bg-white rounded-xl border border-orange-200 shadow-sm p-6">
+
+        <p className="text-sm uppercase tracking-wide text-gray-500">
+            Critical Patients
+        </p>
+
+        <h2 className="text-4xl font-bold text-orange-600 mt-3">
             {analytics?.criticalPatients || 0}
-          </p>
-        </div>
+        </h2>
 
-        <div className="bg-white rounded-xl shadow-lg p-5">
-          <h3 className="text-gray-500">AI Accuracy</h3>
-          <p className="text-4xl font-bold text-green-600">
+        <p className="text-sm text-orange-500 mt-4">
+            High Priority Monitoring
+        </p>
+
+    </div>
+
+    {/* AI Accuracy */}
+
+    <div className="bg-white rounded-xl border border-green-200 shadow-sm p-6">
+
+        <p className="text-sm uppercase tracking-wide text-gray-500">
+            AI Accuracy
+        </p>
+
+        <h2 className="text-4xl font-bold text-green-600 mt-3">
             96.4%
-          </p>
-        </div>
-        <div className="bg-white rounded-xl shadow-lg p-5">
-    <h3 className="text-gray-500">
-        Avg Heart Rate
-    </h3>
+        </h2>
 
-    <p className="text-4xl font-bold text-red-500">
-        {analytics?.averageHeartRate} bpm
-    </p>
-</div>
+        <p className="text-sm text-green-500 mt-4">
+            Latest Model Performance
+        </p>
 
-<div className="bg-white rounded-xl shadow-lg p-5">
-    <h3 className="text-gray-500">
-        Avg Respiration
-    </h3>
+    </div>
 
-    <p className="text-4xl font-bold text-blue-500">
-        {analytics?.averageRespirationRate}/min
-    </p>
-</div>
-<div className="bg-white rounded-xl shadow-lg p-5">
-    <h3 className="text-gray-500">
-        Avg Distress
-    </h3>
+    {/* Average Heart Rate */}
 
-    <p className="text-4xl font-bold text-orange-500">
-        {analytics?.averageDistressScore}
-    </p>
-</div>
-<div className="bg-white rounded-xl shadow-lg p-5">
-  <div className="mt-3 text-green-600 font-semibold">
-🟢 Live
-</div>
-    <h3 className="text-gray-500">
-        Online Patients
-    </h3>
+    <div className="bg-white rounded-xl border border-red-200 shadow-sm p-6">
 
-    <p className="text-4xl font-bold text-green-500">
-        {analytics?.onlinePatients}
-    </p>
+        <p className="text-sm uppercase tracking-wide text-gray-500">
+            Average Heart Rate
+        </p>
+
+        <h2 className="text-4xl font-bold text-red-500 mt-3">
+            {analytics?.averageHeartRate} bpm
+        </h2>
+
+        <p className="text-sm text-gray-400 mt-4">
+            Current Average
+        </p>
+
+    </div>
+
+    {/* Average Respiration */}
+
+    <div className="bg-white rounded-xl border border-blue-200 shadow-sm p-6">
+
+        <p className="text-sm uppercase tracking-wide text-gray-500">
+            Average Respiration
+        </p>
+
+        <h2 className="text-4xl font-bold text-blue-500 mt-3">
+            {analytics?.averageRespirationRate}/min
+        </h2>
+
+        <p className="text-sm text-gray-400 mt-4">
+            Current Average
+        </p>
+
+    </div>
+
+    {/* Average Distress */}
+
+    <div className="bg-white rounded-xl border border-orange-200 shadow-sm p-6">
+
+        <p className="text-sm uppercase tracking-wide text-gray-500">
+            Average Distress
+        </p>
+
+        <h2 className="text-4xl font-bold text-orange-500 mt-3">
+            {analytics?.averageDistressScore}
+        </h2>
+
+        <p className="text-sm text-gray-400 mt-4">
+            AI Risk Score
+        </p>
+
+    </div>
+
+    {/* Online Patients */}
+
+    <div className="bg-white rounded-xl border border-green-200 shadow-sm p-6">
+
+        <p className="text-sm uppercase tracking-wide text-gray-500">
+            Online Patients
+        </p>
+
+        <h2 className="text-4xl font-bold text-green-600 mt-3">
+            {analytics?.onlinePatients}
+        </h2>
+
+        <p className="text-sm text-gray-400 mt-4">
+            Connected Devices
+        </p>
+
+    </div>
+
 </div>
-      </div>
 
       {/* Charts Section */}
-      <div className="grid lg:grid-cols-2 gap-6 mb-8">
-        {/* Distress Trend */}
-        <div className="bg-white rounded-xl shadow-lg p-5">
-          <h2 className="text-xl font-bold mb-4">
-            📈 Distress Trend
-          </h2>
+     <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-8">
 
-          <ResponsiveContainer width="100%" height={300}>
+    <div className="flex items-center justify-between mb-6">
+
+        <div>
+
+            <h2 className="text-2xl font-semibold text-slate-800">
+                Patient Analytics
+            </h2>
+
+            <p className="text-gray-500 mt-1">
+                Live monitoring trends and alert statistics
+            </p>
+
+        </div>
+
+    </div>
+
+    <div className="grid lg:grid-cols-2 gap-8">
+      
+        {/* Distress Trend */}
+       <div className="border border-gray-200 rounded-xl p-5">
+         <h2 className="text-lg font-semibold text-slate-800 mb-5">
+    Distress Trend
+</h2>
+
+          <ResponsiveContainer width="100%" height={340}>
             <LineChart data={analytics?.distressTrend || []}>
               <XAxis dataKey="time" />
               <YAxis />
-              <Tooltip />
-           <Line
+              <Tooltip
+    contentStyle={{
+        borderRadius: 12,
+        border: "1px solid #E5E7EB",
+        boxShadow: "0 2px 8px rgba(0,0,0,.08)",
+    }}
+/>
+          <Line
     type="monotone"
     dataKey="value"
     stroke="#2563eb"
     strokeWidth={3}
+    dot={false}
+    activeDot={{ r: 6 }}
 />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
         {/* Alert Distribution */}
-        <div className="bg-white rounded-xl shadow-lg p-5">
-          <h2 className="text-xl font-bold mb-4">
-            🚨 Alert Distribution
-          </h2>
+        <div className="border border-gray-200 rounded-xl p-5">
+          <h2 className="text-lg font-semibold text-slate-800 mb-5">
+    Alert Distribution
+</h2>
 
-          <ResponsiveContainer width="100%" height={300}>
+     <ResponsiveContainer width="100%" height={340}>
             <PieChart>
               
                <Pie
@@ -208,7 +370,7 @@ const fetchDashboard = async () => {
                 cy="50%"
                 outerRadius={100}
                 dataKey="value"
-                label
+                labelLine={false}
               >
               {analytics?.alertDistribution?.map((entry, index) => (
     <Cell
@@ -217,24 +379,31 @@ const fetchDashboard = async () => {
     />
 ))}
               </Pie>
-              <Tooltip />
+<Tooltip
+    contentStyle={{
+        borderRadius: 12,
+        border: "1px solid #E5E7EB",
+        boxShadow: "0 2px 8px rgba(0,0,0,.08)",
+    }}
+/>
             </PieChart>
           </ResponsiveContainer>
         </div>
       </div>
+    </div>  
 
       {/* Recent Alerts */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
         <h2 className="text-2xl font-bold mb-4">
-          🚨 Recent Alerts
+           Recent Alerts
         </h2>
 
-        {alerts.map((alert) => (
+        {alerts.slice(0, 5).map((alert) => (
           <div
             key={alert._id}
-            className="border-l-4 border-red-500 bg-red-50 p-4 mb-3 rounded-lg"
+            className="border border-gray-200 rounded-xl p-5 mb-4 hover:shadow-md transition"
           >
-           <p className="font-bold text-red-700">
+           <p className="font-semibold text-slate-800">
 {alert.type}
 </p>
 
@@ -248,8 +417,9 @@ Patient ID :
 </p>
 
 <p>
-Priority :
-<strong>{alert.priority}</strong>
+<div className="mt-3 inline-flex px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm font-medium">
+    {alert.priority}
+</div>
 </p>
 
 <p className="text-gray-500">
@@ -257,15 +427,76 @@ Priority :
 </p>
           </div>
         ))}
+        <div className="mt-5 flex justify-end">
+    <button className="px-5 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-900 transition">
+      View All Alerts
+    </button>
+  </div>
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <p className="text-sm text-gray-500 uppercase">
+            Stable
+        </p>
+
+        <h2 className="text-4xl font-bold text-green-600 mt-2">
+            {patients.filter(p => p.riskLevel === "Low Risk").length}
+        </h2>
+    </div>
+
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <p className="text-sm text-gray-500 uppercase">
+            Medium Risk
+        </p>
+
+        <h2 className="text-4xl font-bold text-yellow-500 mt-2">
+            {patients.filter(p => p.riskLevel === "Medium Risk").length}
+        </h2>
+    </div>
+
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <p className="text-sm text-gray-500 uppercase">
+            High Risk
+        </p>
+
+        <h2 className="text-4xl font-bold text-red-600 mt-2">
+            {patients.filter(p => p.riskLevel === "High Risk").length}
+        </h2>
+    </div>
+
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <p className="text-sm text-gray-500 uppercase">
+            Active Monitoring
+        </p>
+
+        <h2 className="text-4xl font-bold text-blue-600 mt-2">
+            {patients.length}
+        </h2>
+    </div>
+
+</div>
 
       {/* Live Patient Status */}
       <div>
-        <h2 className="text-2xl font-bold mb-4">
-          👨‍⚕️ Live Patient Status
+       <div className="flex justify-between items-center mb-6">
+
+    <div>
+
+        <h2 className="text-2xl font-semibold text-slate-800">
+            Live Patient Monitoring
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <p className="text-gray-500 mt-1">
+            Real-time patient vitals and AI observations
+        </p>
+
+    </div>
+
+</div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {console.log("Dashboard Patients:", patients)}
           {patients.map((p) => {
             const riskColor =
@@ -276,58 +507,190 @@ Priority :
                 : "bg-green-200 text-green-800";
 
             return (
-              <div
-                key={p._id}
-                className="bg-white rounded-xl shadow-lg p-5"
-              >
-                <div className="flex justify-between">
-                  <h3 className="text-xl font-bold">
-                 {p.patientId}
-                  </h3>
+          <div
+    key={`${p.patientId}-${p.lastUpdated}`}
+    className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden"
+>
 
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm ${riskColor}`}
-                  >
-                    {p.riskLevel}
-                  </span>
-                </div>
-<div className="mt-4 space-y-2">
+    {/* Header */}
 
-<p>❤️ Heart Rate : {p.heartRate}</p>
+    <div className="border-b border-gray-200 p-5 flex justify-between items-center">
 
-<p>🫁 Respiration : {p.respirationRate}</p>
+        <div>
 
-<p>⚠️ Distress : {p.distressScore}</p>
+            <p className="text-sm text-gray-500">
+                Patient ID
+            </p>
 
-<p>👁 Eye : {p.eyeStatus}</p>
+            <h2 className="text-2xl font-bold text-slate-800">
+                {p.patientId}
+            </h2>
 
-<p>😴 Drowsy : {p.drowsyStatus}</p>
+        </div>
 
-<p>🤧 Cough : {p.coughCount}</p>
+        <span
+            className={`px-4 py-2 rounded-full text-sm font-semibold ${riskColor}`}
+        >
+            {p.riskLevel}
+        </span>
 
-<p>🚶 Body : {p.bodyStatus}</p>
+    </div>
 
-<p>🛑 Fall Risk : {p.fallRisk}</p>
+    {/* Vitals */}
 
-<p className="text-blue-600">
+    <div className="grid grid-cols-2 gap-5 p-5">
 
-{p.recommendation}
+        <div>
 
-</p>
+            <p className="text-gray-500 text-sm">
+                Heart Rate
+            </p>
 
-<p className="text-gray-500 text-sm">
+            <h3 className="text-xl font-semibold mt-1">
+                {p.heartRate}
+                <span className="text-sm text-gray-400 ml-1">
+                    bpm
+                </span>
+            </h3>
 
-Updated :
+        </div>
 
-{new Date(p.lastUpdated).toLocaleTimeString()}
+        <div>
 
-</p>
+            <p className="text-gray-500 text-sm">
+                Respiration
+            </p>
+
+            <h3 className="text-xl font-semibold mt-1">
+                {p.respirationRate}
+                <span className="text-sm text-gray-400 ml-1">
+                    /min
+                </span>
+            </h3>
+
+        </div>
+
+        <div>
+
+            <p className="text-gray-500 text-sm">
+                Distress Score
+            </p>
+
+            <h3 className="text-xl font-semibold mt-1">
+                {p.distressScore}
+            </h3>
+
+        </div>
+
+        <div>
+
+            <p className="text-gray-500 text-sm">
+                Fall Risk
+            </p>
+
+            <h3 className="text-xl font-semibold mt-1">
+                {p.fallRisk}
+            </h3>
+
+        </div>
+
+    </div>
+
+    {/* Observation */}
+
+    <div className="border-t border-gray-200 p-5">
+
+        <h3 className="text-sm uppercase tracking-wide text-gray-500 mb-4">
+
+            Observation
+
+        </h3>
+
+        <div className="grid grid-cols-2 gap-y-3">
+
+            <p className="text-gray-600">
+                Eye Status
+            </p>
+
+            <p className="font-medium">
+                {p.eyeStatus}
+            </p>
+
+            <p className="text-gray-600">
+                Body Position
+            </p>
+
+            <p className="font-medium">
+                {p.bodyStatus}
+            </p>
+
+            <p className="text-gray-600">
+                Drowsiness
+            </p>
+
+            <p className="font-medium">
+                {p.drowsyStatus}
+            </p>
+
+            <p className="text-gray-600">
+                Cough Count
+            </p>
+
+            <p className="font-medium">
+                {p.coughCount}
+            </p>
+
+        </div>
+
+    </div>
+
+    {/* Recommendation */}
+
+   <div className="border-t border-gray-200 bg-gray-50 p-5">
+
+        <p className="text-sm uppercase tracking-wide text-gray-500 mb-2">
+
+            Recommendation
+
+        </p>
+
+        <p className="text-slate-700">
+
+            {p.recommendation}
+
+        </p>
+
+    </div>
+
+    {/* Footer */}
+
+    <div className="border-t border-gray-200 p-5 flex justify-between items-center">
+
+        <div>
+
+            <p className="text-xs text-gray-400">
+
+                Last Updated
+
+            </p>
+
+            <p className="text-sm font-medium">
+
+                {new Date(p.lastUpdated).toLocaleTimeString()}
+
+            </p>
+
+        </div>
+
+        <button className="bg-slate-800 text-white px-5 py-2 rounded-lg hover:bg-slate-700 transition">
+
+            View Details
+
+        </button>
+
+    </div>
 
 </div>
-                <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-                  View Details
-                </button>
-              </div>
             );
           })}
         </div>
