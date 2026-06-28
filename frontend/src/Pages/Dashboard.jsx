@@ -19,12 +19,23 @@ import {
   getAlerts,
 } from "../api/dashboardApi";
 
+import {
+    CircularProgressbar,
+    buildStyles,
+} from "react-circular-progressbar";
+
+import "react-circular-progressbar/dist/styles.css";
+
 
 export default function Dashboard() {
 const [analytics, setAnalytics] = useState(null);
 const [patients, setPatients] = useState([]);
 const [alerts, setAlerts] = useState([]);
 const [loading, setLoading] = useState(true);
+const [search, setSearch] = useState("");
+const [riskFilter, setRiskFilter] = useState("All Risk Levels");
+const [selectedPatient, setSelectedPatient] = useState(null);
+
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability
@@ -398,7 +409,7 @@ const fetchDashboard = async () => {
            Recent Alerts
         </h2>
 
-        {alerts.slice(0, 5).map((alert) => (
+        {alerts.slice(0, 3).map((alert) => (
           <div
             key={alert._id}
             className="border border-gray-200 rounded-xl p-5 mb-4 hover:shadow-md transition"
@@ -435,6 +446,106 @@ Patient ID :
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-8">
+
+    <h2 className="text-xl font-semibold text-slate-800 mb-6">
+        Patient Status Overview
+    </h2>
+
+    {/* Stable */}
+
+    <div className="mb-6">
+
+        <div className="flex justify-between mb-2">
+
+            <span className="font-medium text-gray-700">
+                Stable Patients
+            </span>
+
+            <span className="text-green-600 font-semibold">
+                {patients.filter(p => p.riskLevel === "Low Risk").length}
+            </span>
+
+        </div>
+
+        <div className="h-3 bg-gray-200 rounded-full">
+
+            <div
+                className="h-3 bg-green-500 rounded-full"
+                style={{
+                    width: `${patients.length
+                        ? (patients.filter(p => p.riskLevel === "Low Risk").length / patients.length) * 100
+                        : 0}%`,
+                }}
+            />
+
+        </div>
+
+    </div>
+
+    {/* Medium */}
+
+    <div className="mb-6">
+
+        <div className="flex justify-between mb-2">
+
+            <span className="font-medium text-gray-700">
+                Medium Risk
+            </span>
+
+            <span className="text-yellow-600 font-semibold">
+                {patients.filter(p => p.riskLevel === "Medium Risk").length}
+            </span>
+
+        </div>
+
+        <div className="h-3 bg-gray-200 rounded-full">
+
+            <div
+                className="h-3 bg-yellow-500 rounded-full"
+                style={{
+                    width: `${patients.length
+                        ? (patients.filter(p => p.riskLevel === "Medium Risk").length / patients.length) * 100
+                        : 0}%`,
+                }}
+            />
+
+        </div>
+
+    </div>
+
+    {/* High */}
+
+    <div>
+
+        <div className="flex justify-between mb-2">
+
+            <span className="font-medium text-gray-700">
+                High Risk
+            </span>
+
+            <span className="text-red-600 font-semibold">
+                {patients.filter(p => p.riskLevel === "High Risk").length}
+            </span>
+
+        </div>
+
+        <div className="h-3 bg-gray-200 rounded-full">
+
+            <div
+                className="h-3 bg-red-500 rounded-full"
+                style={{
+                    width: `${patients.length
+                        ? (patients.filter(p => p.riskLevel === "High Risk").length / patients.length) * 100
+                        : 0}%`,
+                }}
+            />
+
+        </div>
+
+    </div>
+
+</div>
 
     <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
         <p className="text-sm text-gray-500 uppercase">
@@ -478,9 +589,66 @@ Patient ID :
 
 </div>
 
+<div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-8">
+
+    <div className="flex justify-between items-center mb-6">
+
+        <div>
+
+            <h2 className="text-xl font-semibold text-slate-800">
+                Recent Activity
+            </h2>
+
+            <p className="text-gray-500 text-sm mt-1">
+                Latest system events and patient updates
+            </p>
+
+        </div>
+
+    </div>
+
+    <div className="space-y-4">
+
+        {alerts.slice(0,2).map((alert)=>(
+
+            <div
+                key={alert._id}
+                className="flex justify-between items-start border-l-4 border-blue-600 pl-4 py-2"
+            >
+
+                <div>
+
+                    <h3 className="font-semibold text-slate-800">
+                        {alert.type}
+                    </h3>
+
+                    <p className="text-gray-600 text-sm">
+                        {alert.patientId}
+                    </p>
+
+                    <p className="text-gray-500 text-sm mt-1">
+                        {alert.message}
+                    </p>
+
+                </div>
+
+                <span className="text-xs text-gray-400 whitespace-nowrap">
+
+                    {new Date(alert.createdAt).toLocaleTimeString()}
+
+                </span>
+
+            </div>
+
+        ))}
+
+    </div>
+
+</div>
+
       {/* Live Patient Status */}
       <div>
-       <div className="flex justify-between items-center mb-6">
+     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
 
     <div>
 
@@ -494,11 +662,51 @@ Patient ID :
 
     </div>
 
-</div>
+    <div className="flex gap-3">
 
+        <input
+    type="text"
+    placeholder="Search Patient ID..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="border border-gray-300 rounded-lg px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+/>
+
+        <select
+    value={riskFilter}
+    onChange={(e) => setRiskFilter(e.target.value)}
+    className="border border-gray-300 rounded-lg px-4 py-2"
+>
+
+            <option>All Patients</option>
+            <option>Low Risk</option>
+            <option>Medium Risk</option>
+            <option>High Risk</option>
+
+        </select>
+
+    </div>
+
+</div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {console.log("Dashboard Patients:", patients)}
-          {patients.map((p) => {
+         {patients
+.filter((p) => {
+
+    const searchMatch =
+        p.patientId
+            .toLowerCase()
+            .includes(search.toLowerCase());
+
+    const riskMatch =
+        riskFilter === "All Risk Levels"
+            ? true
+            : p.riskLevel === riskFilter;
+
+    return searchMatch && riskMatch;
+
+})
+.map((p) => {
             const riskColor =
               p.riskLevel === "High"
                 ? "bg-red-200 text-red-800"
@@ -682,11 +890,12 @@ Patient ID :
 
         </div>
 
-        <button className="bg-slate-800 text-white px-5 py-2 rounded-lg hover:bg-slate-700 transition">
-
-            View Details
-
-        </button>
+    <button
+    onClick={() => setSelectedPatient(p)}
+    className="bg-slate-800 text-white px-5 py-2 rounded-lg hover:bg-slate-700 transition"
+>
+    View Details
+</button>
 
     </div>
 
@@ -695,6 +904,242 @@ Patient ID :
           })}
         </div>
       </div>
+    {selectedPatient && (
+
+<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+    <div className="bg-white rounded-xl shadow-xl w-[700px] max-w-[95%]">
+
+        <div className="border-b p-6 flex justify-between items-center">
+
+            <div>
+
+                <h2 className="text-2xl font-bold text-slate-800">
+
+                    {selectedPatient.patientId}
+
+                </h2>
+
+                <p className="text-gray-500">
+
+                    Patient Information
+
+                </p>
+
+            </div>
+
+            <button
+                onClick={() => setSelectedPatient(null)}
+                className="text-3xl text-gray-400 hover:text-black"
+            >
+                ×
+            </button>
+
+        </div>
+
+      <div className="p-6">
+
+    {/* Vitals */}
+
+    <h3 className="text-lg font-semibold text-slate-800 mb-5">
+        Vital Signs
+    </h3>
+
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+
+        <div className="bg-slate-50 rounded-xl border p-5 flex flex-col items-center">
+
+    <div className="w-28 h-28">
+
+        <CircularProgressbar
+
+            value={selectedPatient.heartRate}
+
+            maxValue={150}
+
+            text={`${selectedPatient.heartRate}`}
+
+            styles={buildStyles({
+
+                textColor: "#dc2626",
+
+                pathColor: "#dc2626",
+
+                trailColor: "#e5e7eb",
+
+            })}
+
+        />
+
+    </div>
+
+    <h3 className="mt-4 font-semibold">
+
+        Heart Rate
+
+    </h3>
+
+    <p className="text-gray-500 text-sm">
+
+        bpm
+
+    </p>
+
+</div>
+
+    <div className="bg-slate-50 rounded-xl border p-5 flex flex-col items-center">
+             <div className="w-28 h-28">
+
+        <CircularProgressbar
+
+            value={selectedPatient.respirationRate}
+
+            maxValue={150}
+
+            text={`${selectedPatient.respirationRate}`}
+
+            styles={buildStyles({
+                pathColor:"#2563eb"
+
+            })}
+
+        />
+
+    </div>
+
+            <p className="text-sm text-gray-500">
+                Respiration
+            </p>
+
+          
+
+            <p className="text-xs text-gray-400">
+                /min
+            </p>
+
+        </div>
+
+   <div className="bg-slate-50 rounded-xl border p-5 flex flex-col items-center">
+
+    <div className="w-28 h-28">
+
+        <CircularProgressbar
+
+            value={selectedPatient.distressScore}
+
+            maxValue={150}
+
+            text={`${selectedPatient.distressScore}`}
+
+            styles={buildStyles({
+
+                textColor: "#dc2626",
+
+                pathColor: "#dc2626",
+
+                trailColor: "#e5e7eb",
+
+            })}
+
+        />
+
+    </div>
+
+    <h3 className="mt-4 font-semibold">
+
+        Distress Score
+    </h3>
+
+    <p className="text-gray-500 text-sm">
+
+        AI Score
+
+    </p>
+
+</div>
+
+        <div className="bg-slate-50 rounded-xl p-4 border">
+
+            <p className="text-sm text-gray-500">
+                Risk Level
+            </p>
+
+            <h2 className="text-2xl font-bold text-green-600 mt-2">
+                {selectedPatient.riskLevel}
+            </h2>
+
+        </div>
+
+    </div>
+
+    {/* AI Observation */}
+
+    <h3 className="text-lg font-semibold text-slate-800 mb-5">
+        AI Observation
+    </h3>
+
+    <div className="grid grid-cols-2 gap-y-4">
+
+        <p className="text-gray-500">
+            Eye Status
+        </p>
+
+        <p className="font-semibold">
+            {selectedPatient.eyeStatus}
+        </p>
+
+        <p className="text-gray-500">
+            Body Position
+        </p>
+
+        <p className="font-semibold">
+            {selectedPatient.bodyStatus}
+        </p>
+
+        <p className="text-gray-500">
+            Drowsiness
+        </p>
+
+        <p className="font-semibold">
+            {selectedPatient.drowsyStatus}
+        </p>
+
+        <p className="text-gray-500">
+            Fall Risk
+        </p>
+
+        <p className="font-semibold">
+            {selectedPatient.fallRisk}
+        </p>
+
+        <p className="text-gray-500">
+            Cough Count
+        </p>
+
+        <p className="font-semibold">
+            {selectedPatient.coughCount}
+        </p>
+
+    </div>
+
+</div>
+        <div className="border-t bg-gray-50 p-6">
+
+        <h3 className="text-lg font-semibold text-slate-800 mb-3">
+            AI Recommendation
+        </h3>
+
+            <p className="text-gray-700">
+                {selectedPatient.recommendation}
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+)}  
     </div>
   );
 }
