@@ -17,7 +17,7 @@ connectDB();
 const app = express();
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,
   })
 );
@@ -51,6 +51,14 @@ app.use(
 
 app.get("/", (req, res) => {
   res.send("Backend Running");
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    message: "Backend is healthy",
+    timestamp: new Date(),
+  });
 });
 
 const PORT =
