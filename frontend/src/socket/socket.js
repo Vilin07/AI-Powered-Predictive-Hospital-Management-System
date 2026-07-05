@@ -1,8 +1,11 @@
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:8000", {
-  transports: ["websocket"],
-});
+const socket = io(
+  "https://ai-powered-predictive-hospital-6n7v.onrender.com",
+  {
+    transports: ["websocket"],
+  }
+);
 
 socket.on("connect", () => {
   console.log("✅ SOCKET CONNECTED");

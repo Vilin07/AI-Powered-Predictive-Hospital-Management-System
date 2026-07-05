@@ -1,8 +1,6 @@
-import axios from "axios";
-
-const API = "http://localhost:8000/api/alerts";
+import api from "./hospitalApi";
 
 export const getAlerts = async () => {
-    const res = await axios.get(API);
-    return res.data;
+  const res = await api.get("/alerts");
+  return res.data;
 };
