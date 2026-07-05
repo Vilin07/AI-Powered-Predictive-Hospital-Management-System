@@ -14,9 +14,9 @@ export const getDashboardAnalytics = async () => {
     status: "Unread",
   });
 
-  const liveVitals = await LiveVital.find().sort({
-    updatedAt: 1,
-  });
+const liveVitals = await LiveVital.find().sort({
+  updatedAt: -1,
+});
 
   console.log("========== LIVE VITALS ==========");
 
@@ -54,7 +54,7 @@ console.log("===============================");
 const thirtySecondsAgo = new Date(Date.now() - 30000);
 
 const recentPatients = await LiveVital.find({
-  lastUpdated: {
+  updatedAt: {
     $gte: thirtySecondsAgo,
   },
 });
@@ -92,48 +92,76 @@ console.log("=====================================");
       ) / liveVitals.length;
   }
 
+const distressTrend = [...liveVitals]
+  .sort(
+    (a, b) =>
+      new Date(a.updatedAt) -
+      new Date(b.updatedAt)
+  )
+  .map((p) => ({
+    time: new Date(
+      p.updatedAt
+    ).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    value: p.distressScore,
+  }));
 
-  const distressTrend =
-    liveVitals.map(p => ({
-      time: new Date(
-        p.lastUpdated
-      ).toLocaleTimeString(),
+const heartRateTrend = [...liveVitals]
+  .sort(
+    (a, b) =>
+      new Date(a.updatedAt) -
+      new Date(b.updatedAt)
+  )
+  .map((p) => ({
+    time: new Date(p.updatedAt).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    value: p.heartRate,
+  }));
 
-      value: p.distressScore,
-    }));
+const respirationTrend = [...liveVitals]
+  .sort(
+    (a, b) =>
+      new Date(a.updatedAt) -
+      new Date(b.updatedAt)
+  )
+  .map((p) => ({
+    time: new Date(p.updatedAt).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    value: p.respirationRate,
+  }));
 
-  const heartRateTrend =
-    liveVitals.map(p => ({
-      time: new Date(
-        p.lastUpdated
-      ).toLocaleTimeString(),
+const criticalAlerts = await Alert.countDocuments({
+  priority: "High",
+});
 
-      value: p.heartRate,
-    }));
+const warningAlerts = await Alert.countDocuments({
+  priority: "Medium",
+});
 
-  const respirationTrend =
-    liveVitals.map(p => ({
-      time: new Date(
-        p.lastUpdated
-      ).toLocaleTimeString(),
+const normalAlerts = await Alert.countDocuments({
+  priority: "Low",
+});
 
-      value: p.respirationRate,
-    }));
-
-  const alertDistribution = [
-    {
-      name: "Critical",
-      value: criticalPatients,
-    },
-    {
-      name: "Warning",
-      value: warningPatients,
-    },
-    {
-      name: "Normal",
-      value: stablePatients,
-    },
-  ];
+const alertDistribution = [
+  {
+    name: "Critical",
+    value: criticalAlerts,
+  },
+  {
+    name: "Warning",
+    value: warningAlerts,
+  },
+  {
+    name: "Normal",
+    value: normalAlerts,
+  },
+];
 
   return {
 
