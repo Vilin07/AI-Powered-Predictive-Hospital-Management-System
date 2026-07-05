@@ -163,6 +163,19 @@ const alertDistribution = [
   },
 ];
 
+const highRiskPatients = liveVitals
+  .sort((a, b) => b.distressScore - a.distressScore)
+  .slice(0, 5)
+  .map((patient) => ({
+    patientId: patient.patientId,
+    distressScore: patient.distressScore,
+    heartRate: patient.heartRate,
+    respirationRate: patient.respirationRate,
+    riskLevel: patient.riskLevel,
+    fallRisk: patient.fallRisk,
+    drowsyStatus: patient.drowsyStatus,
+  }));
+
   return {
 
     totalPatients,
@@ -203,5 +216,7 @@ const alertDistribution = [
     respirationTrend,
 
     alertDistribution,
+
+    highRiskPatients,
   };
 };
