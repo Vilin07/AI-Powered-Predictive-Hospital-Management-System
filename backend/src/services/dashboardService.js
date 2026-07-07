@@ -18,6 +18,7 @@ const liveVitals = await LiveVital.find().sort({
   updatedAt: -1,
 });
 
+
   console.log("========== LIVE VITALS ==========");
 
 liveVitals.forEach((p) => {
@@ -30,25 +31,31 @@ liveVitals.forEach((p) => {
 
 console.log("===============================");
 
-  const criticalPatients = liveVitals.filter(
-    p => p.riskLevel === "High"
-  ).length;
+ const criticalPatients = liveVitals.filter(
+  p => p.riskLevel === "High Risk"
+).length;
 
-  const warningPatients = liveVitals.filter(
-    p => p.riskLevel === "Medium"
-  ).length;
+const warningPatients = liveVitals.filter(
+  p => p.riskLevel === "Medium Risk"
+).length;
 
-  const stablePatients = liveVitals.filter(
-    p => p.riskLevel === "Low"
-  ).length;
+ const stablePatients = liveVitals.filter(
+  p => p.riskLevel === "Low Risk"
+).length;
 
-  const highFallRiskPatients = liveVitals.filter(
-    p => p.fallRisk === "High"
-  ).length;
+ const highFallRiskPatients = liveVitals.filter(
+  p => p.fallRisk === "High Risk"
+).length;
 
-  const drowsyPatients = liveVitals.filter(
-    p => p.drowsyStatus === "DROWSY ⚠️"
-  ).length;
+ const drowsyPatients = liveVitals.filter(
+  p => p.drowsyStatus !== "Normal"
+).length;
+
+const highRiskPatients = liveVitals.filter(
+  (patient) =>
+    patient.riskLevel === "High Risk" ||
+    patient.riskLevel === "Medium Risk"
+);
 
 // Consider a patient online if updated in the last 30 seconds
 const thirtySecondsAgo = new Date(Date.now() - 30000);
@@ -101,9 +108,11 @@ const distressTrend = [...liveVitals]
   .map((p) => ({
     time: new Date(
       p.updatedAt
-    ).toLocaleTimeString([], {
+    ).toLocaleTimeString("en-IN", {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: true,
+      timeZone: "Asia/Kolkata",
     }),
     value: p.distressScore,
   }));
@@ -115,10 +124,12 @@ const heartRateTrend = [...liveVitals]
       new Date(b.updatedAt)
   )
   .map((p) => ({
-    time: new Date(p.updatedAt).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+   time: new Date(p.updatedAt).toLocaleTimeString("en-IN", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+  timeZone: "Asia/Kolkata",
+}),
     value: p.heartRate,
   }));
 
@@ -129,10 +140,12 @@ const respirationTrend = [...liveVitals]
       new Date(b.updatedAt)
   )
   .map((p) => ({
-    time: new Date(p.updatedAt).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+   time: new Date(p.updatedAt).toLocaleTimeString("en-IN", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+  timeZone: "Asia/Kolkata",
+}),
     value: p.respirationRate,
   }));
 
@@ -163,18 +176,7 @@ const alertDistribution = [
   },
 ];
 
-const highRiskPatients = liveVitals
-  .sort((a, b) => b.distressScore - a.distressScore)
-  .slice(0, 5)
-  .map((patient) => ({
-    patientId: patient.patientId,
-    distressScore: patient.distressScore,
-    heartRate: patient.heartRate,
-    respirationRate: patient.respirationRate,
-    riskLevel: patient.riskLevel,
-    fallRisk: patient.fallRisk,
-    drowsyStatus: patient.drowsyStatus,
-  }));
+
 
   return {
 

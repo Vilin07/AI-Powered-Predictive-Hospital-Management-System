@@ -1,6 +1,7 @@
 import LiveVital from "../models/liveVital.js";
 import { generateAlert } from "../services/alertService.js";
 import { getIO } from "../socket/socket.js";
+import VitalHistory from "../models/vitalHistory.js";
 
 // Create or Update Live Vitals
 export const updateLiveVital = async (req, res) => {
@@ -18,6 +19,22 @@ export const updateLiveVital = async (req, res) => {
         upsert: true,      // Create if not found
       }
     );
+    
+await VitalHistory.create({
+  patientId: updatedVital.patientId,
+
+  heartRate: updatedVital.heartRate,
+
+  respirationRate: updatedVital.respirationRate,
+
+  distressScore: updatedVital.distressScore,
+
+  riskLevel: updatedVital.riskLevel,
+
+  fallRisk: updatedVital.fallRisk,
+
+  drowsyStatus: updatedVital.drowsyStatus,
+});
 
 await generateAlert(updatedVital);
 
