@@ -374,287 +374,6 @@ useEffect(() => {
   </div>
 
 </div>
-{/* ================= ROOT CAUSE ANALYSIS ================= */}
-
-<div className="max-w-7xl mx-auto mb-16">
-
-  <h2 className="text-3xl font-bold text-slate-900 mb-3">
-    AI Root Cause Analysis
-  </h2>
-
-  <p className="text-gray-500 mb-8">
-    AI explains why each patient has been classified into a specific risk level.
-  </p>
-
-  <div className="grid lg:grid-cols-2 gap-7">
-
-    {(dashboard?.highRiskPatients?.length ?? 0) > 0 ? (
-
-      dashboard.highRiskPatients.map((patient) => (
-
-        <div
-          key={patient.patientId}
-          className="bg-white rounded-3xl border shadow-md p-7"
-        >
-
-          <div className="flex justify-between items-center">
-
-            <div>
-
-              <h3 className="text-2xl font-bold">
-                {patient.patientId}
-              </h3>
-
-              <p className="text-gray-500">
-                AI Diagnostic Summary
-              </p>
-
-            </div>
-
-            <span
-              className={`px-4 py-2 rounded-full font-semibold ${
-                patient.riskLevel === "High"
-                  ? "bg-red-100 text-red-700"
-                  : patient.riskLevel === "Medium"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-green-100 text-green-700"
-              }`}
-            >
-              {patient.riskLevel}
-            </span>
-
-          </div>
-
-          <hr className="my-6" />
-
-          
-          <div className="mt-8">
-
-  <h4 className="font-semibold mb-4">
-    AI Findings
-  </h4>
-
-  <div className="space-y-3">
-
-    <div className="flex justify-between">
-      <span>Distress Score</span>
-      <span className="font-semibold">
-        {patient.distressScore}
-      </span>
-    </div>
-
-    <div className="flex justify-between">
-      <span>Heart Rate</span>
-      <span className="font-semibold">
-        {patient.heartRate} BPM
-      </span>
-    </div>
-
-    <div className="flex justify-between">
-      <span>Respiration</span>
-      <span className="font-semibold">
-        {patient.respirationRate}
-      </span>
-    </div>
-
-    <div className="flex justify-between">
-      <span>Fall Risk</span>
-      <span className="font-semibold">
-        {patient.fallRisk}
-      </span>
-    </div>
-
-    <div className="flex justify-between">
-      <span>Drowsiness</span>
-      <span className="font-semibold">
-        {patient.drowsyStatus}
-      </span>
-    </div>
-
-  </div>
-
-</div>
-
-            <h4 className="font-semibold mb-2">
-              AI Recommendation
-            </h4>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-gray-700">
-
-              {patient.recommendation}
-
-            </div>
-
-          </div>
-
-      ))
-
-    ) : (
-
-      <div className="bg-white rounded-3xl border shadow-md p-8 w-full">
-
-        <h3 className="text-xl font-semibold text-green-700">
-          ✅ No High-Risk Patients
-        </h3>
-
-        <p className="text-gray-500 mt-3">
-          AI has not detected any patients requiring immediate medical intervention.
-        </p>
-
-      </div>
-
-    )}
-
-  </div>
-
-</div>
-
-{/* ================= AI CLINICAL RECOMMENDATIONS ================= */}
-
-<div className="max-w-7xl mx-auto mb-16">
-
-  <h2 className="text-3xl font-bold text-slate-900 mb-3">
-    AI Clinical Recommendations
-  </h2>
-
-  <p className="text-gray-500 mb-8">
-    AI-generated clinical recommendations based on real-time patient monitoring.
-  </p>
-
-  <div className="grid lg:grid-cols-2 gap-7">
-
-    {(dashboard?.highRiskPatients?.length ?? 0) > 0 ? (
-
-      dashboard.highRiskPatients.map((patient) => (
-
-        <div
-          key={patient.patientId}
-          className="bg-white rounded-3xl shadow-md border p-7"
-        >
-
-          <div className="flex justify-between items-center">
-
-            <div>
-
-              <h3 className="text-2xl font-bold">
-                {patient.patientId}
-              </h3>
-
-              <p className="text-gray-500">
-                AI Suggested Actions
-              </p>
-
-            </div>
-
-            <span
-              className={`px-4 py-2 rounded-full font-semibold ${
-                patient.riskLevel === "High Risk"
-                  ? "bg-red-100 text-red-700"
-                  : patient.riskLevel === "Medium Risk"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-green-100 text-green-700"
-              }`}
-            >
-              {patient.riskLevel}
-            </span>
-
-          </div>
-
-          <hr className="my-6" />
-
-          <div className="space-y-3 text-gray-700">
-
-            {patient.distressScore > 60 && (
-              <p> Notify attending physician immediately.</p>
-            )}
-
-            {patient.heartRate > 100 && (
-              <p> Perform ECG and monitor heart rhythm.</p>
-            )}
-
-            {patient.respirationRate > 24 && (
-              <p> Assess oxygen saturation and respiratory status.</p>
-            )}
-
-            {patient.fallRisk === "High" && (
-              <p>⚠ Activate fall prevention protocol.</p>
-            )}
-
-            {patient.drowsyStatus === "DROWSY ⚠️" && (
-              <p> Perform neurological assessment.</p>
-            )}
-
-            <p>
-              📋 Continue AI monitoring every 30 seconds.
-            </p>
-
-          </div>
-
-          <div className="mt-8">
-
-            <div className="flex justify-between mb-2">
-
-              <span>AI Confidence</span>
-
-              <span className="font-bold text-blue-600">
-                {dashboard
-                  ? `${Math.min(
-                      99,
-                      Math.max(
-                        85,
-                        100 - dashboard.averageDistressScore
-                      )
-                    )}%`
-                  : "--"}
-              </span>
-
-            </div>
-
-            <div className="w-full bg-gray-200 rounded-full h-3">
-
-              <div
-                className="bg-blue-600 h-3 rounded-full"
-                style={{
-                  width: dashboard
-                    ? `${Math.min(
-                        99,
-                        Math.max(
-                          85,
-                          100 - dashboard.averageDistressScore
-                        )
-                      )}%`
-                    : "0%",
-                }}
-              />
-
-            </div>
-
-          </div>
-
-        </div>
-
-      ))
-
-    ) : (
-
-      <div className="bg-white rounded-3xl shadow-md border p-8">
-
-        <h3 className="text-xl font-semibold text-green-700">
-           No Clinical Action Required
-        </h3>
-
-        <p className="mt-4 text-gray-600">
-          AI indicates that all monitored patients are currently stable.
-          Continue routine observation.
-        </p>
-
-      </div>
-
-    )}
-
-  </div>
-
-</div>
 
 
 
@@ -676,9 +395,37 @@ useEffect(() => {
 
     <div className="bg-white rounded-3xl shadow-md border p-6">
 
-      <h3 className="font-bold text-xl mb-5">
-        Heart Rate
-      </h3>
+    <div className="flex justify-between items-center mb-5">
+
+  <div>
+
+    <h3 className="text-xl font-bold">
+      Heart Rate
+    </h3>
+
+    <p className="text-gray-500 text-sm">
+      Current Reading
+    </p>
+
+    <h2 className="text-3xl font-bold text-red-600 mt-1">
+      {dashboard?.averageHeartRate ?? "--"} BPM
+    </h2>
+
+  </div>
+
+  <div className="text-right">
+
+    <p className="text-gray-500 text-sm">
+      Status
+    </p>
+
+    <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold">
+      Normal
+    </span>
+
+  </div>
+
+</div>
 
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={dashboard?.heartRateTrend || []}>
@@ -700,9 +447,37 @@ useEffect(() => {
 
     <div className="bg-white rounded-3xl shadow-md border p-6">
 
-      <h3 className="font-bold text-xl mb-5">
-        Respiration Rate
-      </h3>
+  <div className="flex justify-between items-center mb-5">
+
+<div>
+
+<h3 className="text-xl font-bold">
+Respiration Rate
+</h3>
+
+<p className="text-gray-500 text-sm">
+Current Reading
+</p>
+
+<h2 className="text-3xl font-bold text-blue-600">
+{dashboard?.averageRespirationRate ?? "--"}
+</h2>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+Status
+</p>
+
+<span className="px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold">
+Normal
+</span>
+
+</div>
+
+</div>
 
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={dashboard?.respirationTrend || []}>
@@ -724,9 +499,37 @@ useEffect(() => {
 
     <div className="bg-white rounded-3xl shadow-md border p-6">
 
-      <h3 className="font-bold text-xl mb-5">
-        Distress Score
-      </h3>
+      <div className="flex justify-between items-center mb-5">
+
+<div>
+
+<h3 className="text-xl font-bold">
+Distress Score
+</h3>
+
+<p className="text-gray-500 text-sm">
+Current Score
+</p>
+
+<h2 className="text-3xl font-bold text-orange-500">
+{dashboard?.averageDistressScore ?? "--"}
+</h2>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+Status
+</p>
+
+<span className="px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold">
+Low Risk
+</span>
+
+</div>
+
+</div>
 
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={dashboard?.distressTrend || []}>
@@ -789,14 +592,37 @@ useEffect(() => {
         Detection Modules
       </h3>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
 
-        <p>🟢 Face Detection</p>
-        <p>🟢 Pose Detection</p>
-        <p>🟢 Respiration Analysis</p>
-        <p>🟢 Distress Analysis</p>
+<div className="flex justify-between">
+<span>Face Analysis</span>
+<span className="text-green-600 font-semibold">
+Running
+</span>
+</div>
 
-      </div>
+<div className="flex justify-between">
+<span>Pose Analysis</span>
+<span className="text-green-600 font-semibold">
+Running
+</span>
+</div>
+
+<div className="flex justify-between">
+<span>Respiration Model</span>
+<span className="text-green-600 font-semibold">
+Running
+</span>
+</div>
+
+<div className="flex justify-between">
+<span>Distress Engine</span>
+<span className="text-green-600 font-semibold">
+Running
+</span>
+</div>
+
+</div>
 
     </div>
 
@@ -877,15 +703,21 @@ useEffect(() => {
       </h2>
     </div>
 
-    <div className="bg-white rounded-2xl shadow-md border p-6">
-      <p className="text-gray-500">AI Predictions</p>
-      <h2 className="text-4xl font-bold mt-3">
-        {(dashboard?.totalPatients ?? 0) * 60}
-      </h2>
-      <p className="text-sm text-gray-400 mt-2">
-        Estimated today
-      </p>
-    </div>
+  <div className="bg-white rounded-2xl shadow-md border p-6">
+
+  <p className="text-gray-500">
+    Stable Patients
+  </p>
+
+  <h2 className="text-4xl font-bold mt-3 text-green-600">
+    {dashboard?.stablePatients ?? 0}
+  </h2>
+
+  <p className="text-sm text-gray-400 mt-2">
+    Currently Stable
+  </p>
+
+</div>
 
     <div className="bg-white rounded-2xl shadow-md border p-6">
       <p className="text-gray-500">Alerts Generated</p>
