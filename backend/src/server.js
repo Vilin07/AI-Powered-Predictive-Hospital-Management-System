@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import http from "http";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 import connectDB from "./config/db.js";
 import patientRoutes from "./routes/patientRoutes.js";
@@ -9,6 +10,7 @@ import vitalRoutes from "./routes/vitalRoutes.js";
 import liveVitalRoutes from "./routes/liveVitalRoutes.js";
 import alertRoutes from "./routes/alertRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 
@@ -27,6 +29,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(
   "/api/patients",
@@ -52,6 +55,8 @@ app.use(
   "/api/dashboard",
   dashboardRoutes
 );
+
+app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend Running");

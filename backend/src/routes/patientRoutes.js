@@ -1,4 +1,5 @@
 import express from "express";
+import { protect } from "../middleware/authMiddleware.js";
 
 import {
   createPatient,
@@ -7,7 +8,7 @@ import {
 
 const router = express.Router();
 
-router.post("/", createPatient);
-router.get("/", getPatients);
+router.post("/",protect, createPatient);
+router.get("/",protect, getPatients);
 
 export default router;

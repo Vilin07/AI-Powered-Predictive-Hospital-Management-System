@@ -1,4 +1,5 @@
 import express from "express";
+import { protect } from "../middleware/authMiddleware.js";
 
 import {
   updateLiveVital,
@@ -12,9 +13,9 @@ const router = express.Router();
 router.post("/", updateLiveVital);
 
 // Get All Live Vitals
-router.get("/", getLiveVitals);
+router.get("/",protect, getLiveVitals);
 
 // Get Single Patient Live Vitals
-router.get("/:patientId", getLiveVitalByPatient);
+router.get("/:patientId",protect, getLiveVitalByPatient);
 
 export default router;

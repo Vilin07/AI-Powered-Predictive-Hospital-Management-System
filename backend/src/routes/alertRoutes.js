@@ -1,4 +1,5 @@
 import express from "express";
+import { protect } from "../middleware/authMiddleware.js";
 
 import {
   getAlerts,
@@ -9,12 +10,12 @@ import {
 const router = express.Router();
 
 // Get all alerts
-router.get("/", getAlerts);
+router.get("/",protect, getAlerts);
 
 // Get alerts of one patient
-router.get("/:patientId", getPatientAlerts);
+router.get("/:patientId",protect, getPatientAlerts);
 
 // Mark alert as read
-router.put("/:id/read", markAlertAsRead);
+router.put("/:id/read", protect, markAlertAsRead);
 
 export default router;

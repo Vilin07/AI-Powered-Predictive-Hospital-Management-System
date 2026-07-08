@@ -1,4 +1,5 @@
 import express from "express";
+import { protect } from "../middleware/authMiddleware.js";
 
 import{
     createVital,
@@ -7,7 +8,7 @@ import{
 
 const router = express.Router();
 
-router.post("/", createVital);
-router.get("/", getVitals);
+router.post("/",protect, createVital);
+router.get("/",protect, getVitals);
 
 export default router;
