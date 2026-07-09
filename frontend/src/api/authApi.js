@@ -1,43 +1,19 @@
-const API = "http://localhost:8000/api/auth";
+import api from "./hospitalApi";
 
+// Login
 export const login = async (credentials) => {
-  const response = await fetch(`${API}/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(credentials),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message);
-  }
-
+  const { data } = await api.post("/auth/login", credentials);
   return data;
 };
 
+// Get logged-in user
 export const getCurrentUser = async () => {
-  const response = await fetch(`${API}/me`, {
-    credentials: "include",
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message);
-  }
-
+  const { data } = await api.get("/auth/me");
   return data;
 };
 
+// Logout
 export const logout = async () => {
-  const response = await fetch(`${API}/logout`, {
-    method: "POST",
-    credentials: "include",
-  });
-
-  return response.json();
+  const { data } = await api.post("/auth/logout");
+  return data;
 };
