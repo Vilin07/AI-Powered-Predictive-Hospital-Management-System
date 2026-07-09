@@ -33,7 +33,7 @@ export default function OverviewSection() {
           <br /><br />
 
           <button
-            onClick={() => navigate("/Pages/About")}
+            onClick={() => navigate("/about")}
             className="px-6 py-3 rounded-full font-semibold text-slate-200 
               bg-gradient-to-r from-indigo-800 to-fuchsia-600 
               shadow-[0_0_15px_rgba(139,92,246,0.4)] 

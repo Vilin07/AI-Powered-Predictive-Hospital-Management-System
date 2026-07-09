@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from "react";
 import socket from "./socket/socket";
+import Login from "./Pages/Login.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 import Navbar from './components/Navbar.jsx';
 import HeroSection from './components/Video.jsx';
@@ -10,24 +12,25 @@ import DashboardPreview from './components/DashboardPreview.jsx';
 import AlertsOverview from './components/AlertsPreview.jsx';
 import AboutSection from './components/AboutPreview.jsx';
 import Footer from './components/Footer.jsx';
-import About from './Pages/About.jsx';
+import About from "./Pages/About.jsx";
 import Dashboard from "./Pages/Dashboard.jsx";
 import Alerts from "./Pages/Alerts.jsx";
 import Analytics from "./Pages/Analytics.jsx";
-import MainLayout from './layouts/MainLayout.jsx';
-import LiveMonitoring from './Pages/LiveMonitoring.jsx';
+import LiveMonitoring from "./Pages/LiveMonitoring.jsx";
+import MainLayout from "./layouts/MainLayout.jsx";
 
 
 function App() {
   const location = useLocation();
 
-  const hideNavbarRoutes = [
-    "/Pages/About",
-    "/Pages/Dashboard",
-    "/Pages/Alerts",
-    "/Pages/Analytics",
-    "/Pages/LiveMonitoring",
-  ];
+ const hideNavbarRoutes = [
+  "/login",
+  "/dashboard",
+  "/alerts",
+  "/analytics",
+  "/live-monitoring",
+  "/about",
+];
 
   const hideNavbar = hideNavbarRoutes.includes(location.pathname);
 
@@ -51,29 +54,40 @@ function App() {
       {!hideNavbar && <Navbar />}
 
       <Routes>
-        {/* HOME PAGE */}
-        <Route
-          path="/"
-          element={
-            <>
-              <HeroSection />
-              <DashboardPreview />
-              <AlertsOverview />
-              <AboutSection />
-              <Footer />
-            </>
-          }
-        />
 
-        {/* Dashboard Layout */}
-        <Route element={<MainLayout />}>
-          <Route path="/Pages/Dashboard" element={<Dashboard />} />
-          <Route path="/Pages/Alerts" element={<Alerts />} />
-          <Route path="/Pages/Analytics" element={<Analytics />} />
-          <Route path="/Pages/LiveMonitoring" element={<LiveMonitoring />} />
-          <Route path="/Pages/About" element={<About />} />
-        </Route>
-      </Routes>
+  {/* HOME PAGE */}
+  <Route
+    path="/"
+    element={
+      <>
+        <HeroSection />
+        <DashboardPreview />
+        <AlertsOverview />
+        <AboutSection />
+        <Footer />
+      </>
+    }
+  />
+
+  {/* LOGIN PAGE */}
+  <Route path="/login" element={<Login />} />
+
+  {/* Dashboard Layout */}
+  <Route
+    element={
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    }
+  >
+    <Route path="/dashboard" element={<Dashboard />} />
+    <Route path="/alerts" element={<Alerts />} />
+    <Route path="/analytics" element={<Analytics />} />
+    <Route path="/live-monitoring" element={<LiveMonitoring />} />
+    <Route path="/about" element={<About />} />
+  </Route>
+
+</Routes>
     </>
   );
 }

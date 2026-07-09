@@ -16,7 +16,7 @@ export default function MainLayout() {
         <nav className="space-y-3">
 
           <NavLink
-            to="/Pages/Dashboard"
+            to="/dashboard"
             className={({ isActive }) =>
               `block px-4 py-3 rounded-lg transition-all duration-300 ${
                 isActive
@@ -29,7 +29,7 @@ export default function MainLayout() {
           </NavLink>
 
           <NavLink
-            to="/Pages/Alerts"
+            to="/alerts"
             className={({ isActive }) =>
               `block px-4 py-3 rounded-lg transition-all duration-300 ${
                 isActive
@@ -42,7 +42,7 @@ export default function MainLayout() {
           </NavLink>
 
           <NavLink
-            to="/Pages/Analytics"
+            to="/analytics"
             className={({ isActive }) =>
               `block px-4 py-3 rounded-lg transition-all duration-300 ${
                 isActive
@@ -55,7 +55,7 @@ export default function MainLayout() {
           </NavLink>
 
           <NavLink
-            to="/Pages/LiveMonitoring"
+            to="/live-monitoring"
             className={({ isActive }) =>
               `block px-4 py-3 rounded-lg transition-all duration-300 ${
                 isActive
@@ -68,7 +68,7 @@ export default function MainLayout() {
           </NavLink>
 
           <NavLink
-            to="/Pages/About"
+            to="/about"
             className={({ isActive }) =>
               `block px-4 py-3 rounded-lg transition-all duration-300 ${
                 isActive
