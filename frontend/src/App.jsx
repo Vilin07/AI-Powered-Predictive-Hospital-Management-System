@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import socket from "./socket/socket";
 import Login from "./Pages/Login.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import Register from "./Pages/Register";
 
 import Navbar from './components/Navbar.jsx';
 import HeroSection from './components/Video.jsx';
@@ -25,6 +26,7 @@ function App() {
 
  const hideNavbarRoutes = [
   "/login",
+  "/register",
   "/dashboard",
   "/alerts",
   "/analytics",
@@ -73,19 +75,28 @@ function App() {
   <Route path="/login" element={<Login />} />
 
   {/* Dashboard Layout */}
-  <Route
-    element={
-      <ProtectedRoute>
-        <MainLayout />
-      </ProtectedRoute>
-    }
-  >
-    <Route path="/dashboard" element={<Dashboard />} />
-    <Route path="/alerts" element={<Alerts />} />
-    <Route path="/analytics" element={<Analytics />} />
-    <Route path="/live-monitoring" element={<LiveMonitoring />} />
-    <Route path="/about" element={<About />} />
-  </Route>
+<Route
+  element={
+    <ProtectedRoute>
+      <MainLayout />
+    </ProtectedRoute>
+  }
+>
+  <Route path="/dashboard" element={<Dashboard />} />
+  <Route path="/alerts" element={<Alerts />} />
+  <Route path="/analytics" element={<Analytics />} />
+  <Route path="/live-monitoring" element={<LiveMonitoring />} />
+  <Route path="/about" element={<About />} />
+</Route>
+
+<Route
+  path="/register"
+  element={
+    <ProtectedRoute roles={["Administrator"]}>
+      <Register />
+    </ProtectedRoute>
+  }
+/>
 
 </Routes>
     </>

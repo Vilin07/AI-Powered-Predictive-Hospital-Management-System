@@ -1,5 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
   const navItems = [
@@ -10,6 +12,19 @@ const Navbar = () => {
     { name: "ABOUT", path: "/about" },
     { name: "LIVE AI", path: "/live-monitoring" }
   ];
+ 
+ const navigate = useNavigate();
+ const { logout } = useAuth();
+
+ const handleLogout = async () => {
+  try {
+    await logout();
+    navigate("/login");
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   return (
     <div className="w-full fixed top-0 left-0 bg-gradient-to-r from-[#0a0f2c]/95 via-[#120a2a]/95 to-[#1a043a]/95 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.6)] z-[1000] border-b border-white/10">
@@ -44,9 +59,17 @@ const Navbar = () => {
               </NavLink>
             </li>
           ))}
+
+          <button
+  onClick={handleLogout}
+  className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg transition"
+>
+  Logout
+</button>
         </ul>
 
       </div>
+      
     </div>
   );
 };

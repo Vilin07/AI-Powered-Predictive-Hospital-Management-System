@@ -3,6 +3,7 @@ import {
   login as loginApi,
   logout as logoutApi,
   getCurrentUser,
+  register as registerApi,
 } from "../api/authApi";
 
 const AuthContext = createContext();
@@ -40,6 +41,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+ const register = async (staffData) => {
+  const data = await registerApi(staffData);
+  return data;
+};
+
+
+
   return (
     <AuthContext.Provider
       value={{
@@ -47,11 +55,13 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         logout,
+        register,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
+
 
 export const useAuth = () => useContext(AuthContext);

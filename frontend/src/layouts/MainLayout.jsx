@@ -1,8 +1,23 @@
 import { Outlet, NavLink } from "react-router-dom";
 import {useNavigate} from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
 
 export default function MainLayout() {
   const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
+  const { user } = useAuth();
+
+  const handleLogout = async () => {
+  try {
+    // eslint-disable-next-line no-undef
+    await logout();
+    navigate("/login");
+  } catch (error) {
+    console.error("Logout failed:", error);
+  }
+};
+
   return (
     <div className="flex min-h-screen bg-gray-100">
 
@@ -96,6 +111,14 @@ export default function MainLayout() {
             Monitoring Patients
           </p>
         </div>
+        <div className="mt-8">
+  <button
+    onClick={handleLogout}
+    className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold transition"
+  >
+    Logout
+  </button>
+</div>
 
       </div>
 
