@@ -5,16 +5,14 @@ import { useAuth } from "../context/AuthContext";
 
 export default function MainLayout() {
   const navigate = useNavigate();
-  // eslint-disable-next-line no-unused-vars
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
-  const handleLogout = async () => {
+const handleLogout = async () => {
   try {
-    // eslint-disable-next-line no-undef
     await logout();
     navigate("/login");
   } catch (error) {
-    console.error("Logout failed:", error);
+    console.error(error);
   }
 };
 
@@ -42,6 +40,21 @@ export default function MainLayout() {
           >
              Dashboard
           </NavLink>
+
+         {user?.role === "Administrator" && (
+  <NavLink
+    to="/staff"
+    className={({ isActive }) =>
+      `block px-4 py-3 rounded-lg transition ${
+        isActive
+          ? "bg-cyan-500 text-white"
+          : "hover:bg-slate-800 hover:text-cyan-400"
+      }`
+    }
+  >
+    Staff Management
+  </NavLink>
+)}
 
           <NavLink
             to="/alerts"
@@ -95,29 +108,67 @@ export default function MainLayout() {
              About
           </NavLink>
 
+          <NavLink
+  to="/profile"
+  className={({isActive}) =>
+    `block px-4 py-3 rounded-lg transition-all duration-300 ${
+      isActive
+      ? "bg-cyan-500 text-white"
+      : "hover:bg-slate-800 hover:text-cyan-400"
+    }`
+  }
+>
+  My Profile
+</NavLink>
+
         </nav>
 
-        {/* Future AI Status Panel */}
-        <div className="mt-10 p-4 bg-slate-800 rounded-lg">
-          <h3 className="font-semibold text-cyan-400 mb-2">
-            AI Status
-          </h3>
+     {/* AI Status */}
+<div className="mt-10 p-4 bg-slate-800 rounded-lg">
 
-          <p className="text-sm text-green-400">
-            ● System Online
-          </p>
+  <h3 className="font-semibold text-cyan-400 mb-3">
+    AI Status
+  </h3>
 
-          <p className="text-sm text-gray-300 mt-1">
-            Monitoring Patients
-          </p>
-        </div>
-        <div className="mt-8">
+  <p className="text-green-400 text-sm">
+    ● System Online
+  </p>
+
+  <p className="text-gray-300 text-sm mt-1">
+    Monitoring Patients
+  </p>
+
+</div>
+
+{/* Logged In User */}
+
+<div className="mt-6 p-4 bg-slate-800 rounded-lg">
+
+  <h3 className="text-cyan-400 font-semibold mb-4">
+
+    Logged In
+
+  </h3>
+
+  <p className="font-semibold text-white">
+
+    {user?.fullName}
+
+  </p>
+
+  <p className="text-sm text-gray-300">
+
+    {user?.role}
+
+  </p>
+
   <button
     onClick={handleLogout}
-    className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold transition"
+    className="mt-4 w-full bg-red-500 hover:bg-red-600 transition text-white py-2 rounded-lg font-medium"
   >
     Logout
   </button>
+
 </div>
 
       </div>

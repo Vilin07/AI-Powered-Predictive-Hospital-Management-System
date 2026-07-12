@@ -2,6 +2,7 @@ import {
   registerUser,
   loginUser,
 } from "../services/authService.js";
+import User from "../models/User.js";
 
 export const register = async (req, res) => {
   try {
@@ -86,5 +87,92 @@ res.cookie("token", "", {
     success: true,
     message: "Logged out successfully.",
   });
+
+};
+
+export const getProfile = async (req, res) => {
+
+  try {
+
+    const user = await User.findById(req.user.id)
+      .select("-password");
+
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+
+
+  } catch(error){
+
+    res.status(500).json({
+      success:false,
+      message:error.message
+    });
+
+  }
+
+};
+
+export const changePassword = async (req, res) => {
+
+  try {
+
+    const { currentPassword, newPassword } = req.body;
+
+
+    const user = await User.findById(req.user.id)
+      .select("+password");
+
+
+    if (!user) {
+      return res.status(404).json({
+        success:false,
+        message:"User not found."
+      });
+    }
+
+
+    const isMatch = await user.comparePassword(
+      currentPassword
+    );
+
+
+    if (!isMatch) {
+
+      return res.status(400).json({
+        success:false,
+        message:"Current password is incorrect."
+      });
+
+    }
+
+
+    user.password = newPassword;
+
+    await user.save();
+
+
+    res.status(200).json({
+
+      success:true,
+
+      message:"Password changed successfully."
+
+    });
+
+
+  } catch(error){
+
+    res.status(500).json({
+
+      success:false,
+
+      message:error.message
+
+    });
+
+  }
 
 };

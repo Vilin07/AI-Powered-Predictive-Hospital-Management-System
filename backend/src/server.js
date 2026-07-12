@@ -11,6 +11,7 @@ import liveVitalRoutes from "./routes/liveVitalRoutes.js";
 import alertRoutes from "./routes/alertRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import staffRoutes from "./routes/staffRoutes.js";
 
 dotenv.config();
 
@@ -59,6 +60,7 @@ app.use(
 );
 
 app.use("/api/auth", authRoutes);
+app.use("/api/staff", staffRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend Running");

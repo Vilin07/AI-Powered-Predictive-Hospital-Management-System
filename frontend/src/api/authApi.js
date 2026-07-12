@@ -6,11 +6,13 @@ export const login = async (credentials) => {
   return data;
 };
 
+
 // Register
 export const register = async (staffData) => {
   const { data } = await api.post("/auth/register", staffData);
   return data;
 };
+
 
 // Get logged-in user
 export const getCurrentUser = async () => {
@@ -18,8 +20,20 @@ export const getCurrentUser = async () => {
   return data;
 };
 
+
 // Logout
 export const logout = async () => {
   const { data } = await api.post("/auth/logout");
   return data;
+};
+
+export const changePassword = async (passwordData)=>{
+
+  const {data} = await api.patch(
+    "/auth/change-password",
+    passwordData
+  );
+
+  return data;
+
 };

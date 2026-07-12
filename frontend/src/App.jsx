@@ -19,7 +19,9 @@ import Alerts from "./Pages/Alerts.jsx";
 import Analytics from "./Pages/Analytics.jsx";
 import LiveMonitoring from "./Pages/LiveMonitoring.jsx";
 import MainLayout from "./layouts/MainLayout.jsx";
-
+import Staff from "./Pages/Staff";
+import RoleProtectedRoute from "./components/RoleProtectedRoute";
+import Profile from "./Pages/Profile.jsx";
 
 function App() {
   const location = useLocation();
@@ -32,6 +34,8 @@ function App() {
   "/analytics",
   "/live-monitoring",
   "/about",
+  "/staff",
+  "/profile",
 ];
 
   const hideNavbar = hideNavbarRoutes.includes(location.pathname);
@@ -73,6 +77,7 @@ function App() {
 
   {/* LOGIN PAGE */}
   <Route path="/login" element={<Login />} />
+  
 
   {/* Dashboard Layout */}
 <Route
@@ -87,14 +92,30 @@ function App() {
   <Route path="/analytics" element={<Analytics />} />
   <Route path="/live-monitoring" element={<LiveMonitoring />} />
   <Route path="/about" element={<About />} />
+  <Route 
+ path="/profile" 
+ element={<Profile />} 
+/>
+  <Route
+  path="/staff"
+  element={
+    <RoleProtectedRoute
+      allowedRoles={["Administrator"]}
+    >
+      <Staff />
+    </RoleProtectedRoute>
+  }
+/>
 </Route>
 
 <Route
   path="/register"
   element={
-    <ProtectedRoute roles={["Administrator"]}>
+    <RoleProtectedRoute
+      allowedRoles={["Administrator"]}
+    >
       <Register />
-    </ProtectedRoute>
+    </RoleProtectedRoute>
   }
 />
 
