@@ -10,7 +10,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-
+import { generatePatientReport } from "../utils/generatePatientReport";
 
 
 export default function Analytics() {
@@ -344,6 +344,8 @@ useEffect(() => {
                 </p>
 
               </div>
+
+              
 
             </div>
 

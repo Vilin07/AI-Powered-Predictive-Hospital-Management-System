@@ -22,6 +22,7 @@ import MainLayout from "./layouts/MainLayout.jsx";
 import Staff from "./Pages/Staff";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import Profile from "./Pages/Profile.jsx";
+import Patients from "./Pages/Patients";
 
 function App() {
   const location = useLocation();
@@ -36,6 +37,7 @@ function App() {
   "/about",
   "/staff",
   "/profile",
+  "/patients",
 ];
 
   const hideNavbar = hideNavbarRoutes.includes(location.pathname);
@@ -92,6 +94,7 @@ function App() {
   <Route path="/analytics" element={<Analytics />} />
   <Route path="/live-monitoring" element={<LiveMonitoring />} />
   <Route path="/about" element={<About />} />
+  <Route path="/patients" element={<Patients />} />
   <Route 
  path="/profile" 
  element={<Profile />} 

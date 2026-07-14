@@ -41,6 +41,19 @@ const handleLogout = async () => {
              Dashboard
           </NavLink>
 
+          <NavLink
+            to="/patients"
+            className={({ isActive }) =>
+            `block px-4 py-3 rounded-lg transition-all duration-300 ${
+            isActive
+            ? "bg-cyan-500 text-white"
+            : "hover:bg-slate-800 hover:text-cyan-400"
+          }`
+         }
+      >
+     Patients
+    </NavLink>
+
          {user?.role === "Administrator" && (
   <NavLink
     to="/staff"

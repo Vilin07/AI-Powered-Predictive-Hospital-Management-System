@@ -1,14 +1,14 @@
-import express from "express";
-import { protect } from "../middleware/authMiddleware.js";
+  import express from "express";
+  import { protect } from "../middleware/authMiddleware.js";
 
-import {
-  createPatient,
-    getPatients
-} from "../controllers/patientController.js";
+  import {
+    createPatient,
+      getPatients
+  } from "../controllers/patientController.js";
 
-const router = express.Router();
+  const router = express.Router();
 
-router.post("/",protect, createPatient);
-router.get("/",protect, getPatients);
+  router.post("/",protect, createPatient);
+  router.get("/",protect, getPatients);
 
-export default router;
+  export default router;
