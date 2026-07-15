@@ -1,3 +1,5 @@
+import { generatePatientReport } from "../utils/generatePatientReport";
+
 export default function PatientDetailsModal({
   isOpen,
   patient,
@@ -71,36 +73,32 @@ export default function PatientDetailsModal({
 
             <div className="grid md:grid-cols-5 gap-5">
 
+            <VitalCard
+  title="Heart Rate"
+  value={`${patient.heartRate ?? "--"} BPM`}
+  color="text-red-600"
+/>
               <VitalCard
-                title="Heart Rate"
-                value="82 BPM"
-                color="text-red-600"
-              />
+  title="Respiration"
+  value={`${patient.respirationRate ?? "--"} /min`}
+  color="text-blue-600"
+/>
+           <VitalCard
+  title="SpO₂"
+  value={`${patient.oxygenLevel ?? "--"} %`}
+  color="text-green-600"
+/>
+            <VitalCard
+  title="Temperature"
+  value={`${patient.temperature ?? "--"} °F`}
+  color="text-orange-500"
+/>
 
-              <VitalCard
-                title="Respiration"
-                value="18/min"
-                color="text-blue-600"
-              />
-
-              <VitalCard
-                title="SpO₂"
-                value="98%"
-                color="text-green-600"
-              />
-
-              <VitalCard
-                title="Temperature"
-                value="98.6°F"
-                color="text-orange-500"
-              />
-
-              <VitalCard
-                title="Blood Pressure"
-                value="120/80"
-                color="text-cyan-600"
-              />
-
+        <VitalCard
+  title="Blood Pressure"
+  value={patient.bloodPressure ?? "--"}
+  color="text-cyan-600"
+/>
             </div>
 
           </div>
@@ -117,25 +115,25 @@ export default function PatientDetailsModal({
 
               <VitalCard
                 title="Distress Score"
-                value="22"
+                value={patient.distressScore ?? "--"}
                 color="text-orange-600"
               />
 
               <VitalCard
                 title="Risk Level"
-                value="Low"
+               value={patient.riskLevel ?? "--"}
                 color="text-green-600"
               />
 
               <VitalCard
                 title="Drowsiness"
-                value="No"
+                value={patient.drowsyStatus ?? "--"}
                 color="text-blue-600"
               />
 
               <VitalCard
                 title="Fall Risk"
-                value="Low"
+                value={patient.fallRisk ?? "--"}
                 color="text-purple-600"
               />
 
@@ -155,11 +153,8 @@ export default function PatientDetailsModal({
 
               <p className="text-gray-700 leading-8">
 
-                Patient condition appears stable.
-
-                Continue routine monitoring.
-
-                No immediate medical intervention required.
+                {patient.recommendation ??
+  "No recommendation available."}
 
               </p>
 
@@ -179,10 +174,11 @@ export default function PatientDetailsModal({
             </button>
 
             <button
-              className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-lg"
-            >
-              Download AI Report
-            </button>
+  onClick={() => generatePatientReport(patient)}
+  className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-lg"
+>
+  Download AI Report
+</button>
 
           </div>
 

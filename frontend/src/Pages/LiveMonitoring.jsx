@@ -79,6 +79,21 @@ const [aiStatus, setAiStatus] = useState("Loading AI Models...");
   144,
 ];
 
+const registerPatient = async () => {
+  try {
+    await api.post("/patients", {
+      patientId: "P1001",
+      name: "Unknown Patient",
+      age: 35,
+      gender: "Male",
+      roomNumber: "ICU-01",
+      status: "Active",
+    });
+  } catch (error) {
+    console.log("Patient already exists.");
+  }
+};
+
 const sendLiveVitals = async () => {
   try {
     console.log("📤 Sending vitals to backend...");
@@ -130,6 +145,7 @@ const sendLiveVitals = async () => {
       try {
         await loadFaceLandmarker();
         await loadPoseLandmarker();
+        await registerPatient();
 
        setAiStatus(
   "Face & Pose AI Loaded"

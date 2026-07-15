@@ -17,20 +17,22 @@ const patientSchema = new mongoose.Schema({
     required: true,
   },
 
-  gender: {
-    type: String,
-    required: true,
-  },
+gender: {
+  type: String,
+  enum: ["Male", "Female", "Other"],
+  required: true,
+},
 
   roomNumber: {
     type: String,
     required: true,
   },
 
-  status: {
-    type: String,
-    default: "Active",
-  },
+status: {
+  type: String,
+  enum: ["Active", "Discharged"],
+  default: "Active",
+},
 
   // ===== AI HEALTH METRICS =====
 
@@ -64,21 +66,23 @@ const patientSchema = new mongoose.Schema({
     default: 15,
   },
 
-  riskLevel: {
-    type: String,
-    default: "Low",
-  },
+riskLevel: {
+  type: String,
+  enum: ["Low", "Medium", "High"],
+  default: "Low",
+},
 
-  fallRisk: {
-    type: String,
-    default: "Low",
-  },
+fallRisk: {
+  type: String,
+  enum: ["Low", "Medium", "High"],
+  default: "Low",
+},
 
-  drowsyStatus: {
-    type: String,
-    default: "No",
-  },
-
+ drowsyStatus: {
+  type: String,
+  enum: ["Yes", "No"],
+  default: "No",
+},
   recommendation: {
     type: String,
     default:

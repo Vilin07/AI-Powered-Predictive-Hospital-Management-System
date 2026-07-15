@@ -1,6 +1,11 @@
 import { useEffect,useMeno, useState } from "react";
-import { getPatients } from "../api/patientApi";
+import {
+  getPatients,
+  createPatient,
+  updatePatientStatus,
+} from "../api/patientApi";
 import PatientDetailsModal from "../components/PatientDetailsModal";
+import AddPatientModal from "../components/AddPatientModal";
 
 export default function Patients() {
   const [patients, setPatients] = useState([]);
@@ -9,6 +14,7 @@ export default function Patients() {
   const [statusFilter, setStatusFilter] = useState("");
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
 
 useEffect(() => {
@@ -61,26 +67,59 @@ const filteredPatients = patients.filter((patient) => {
   return matchesSearch && matchesStatus;
 });
 
+const handleAddPatient = async (patientData) => {
+  try {
+    const newPatient = await createPatient(patientData);
+
+    setPatients((prev) => [...prev, newPatient]);
+
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const handleStatusChange = async (id) => {
+  try {
+    const updatedPatient = await updatePatientStatus(id);
+
+    setPatients((prev) =>
+      prev.map((patient) =>
+        patient._id === id ? updatedPatient : patient
+      )
+    );
+
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
   return (
   <div className="p-6">
 
     {/* Header */}
+<div className="flex justify-between items-center mb-8">
 
-    <div className="flex justify-between items-center mb-8">
+  <div>
 
-      <div>
+    <h1 className="text-3xl font-bold text-slate-800">
+      Patient Management
+    </h1>
 
-        <h1 className="text-3xl font-bold text-slate-800">
-          Patient Management
-        </h1>
+    <p className="text-gray-500 mt-1">
+      View and manage all hospital patients.
+    </p>
 
-        <p className="text-gray-500 mt-1">
-          View and manage all hospital patients.
-        </p>
+  </div>
 
-      </div>
+  <button
+    onClick={() => setShowAddModal(true)}
+    className="bg-cyan-600 hover:bg-cyan-700 text-white px-5 py-3 rounded-xl font-semibold shadow"
+  >
+    + Add Patient
+  </button>
 
-    </div>
+</div>
 
     {/* Summary Cards */}
 
@@ -276,19 +315,23 @@ const filteredPatients = patients.filter((patient) => {
                   {patient.roomNumber}
                 </td>
 
-                <td className="p-4">
+               <td className="p-4">
 
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm ${
-                      patient.status === "Active"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-blue-100 text-blue-700"
-                    }`}
-                  >
-                    {patient.status}
-                  </span>
+<button
+  onClick={() => {
+    console.log("Clicked", patient._id);
+    handleStatusChange(patient._id);
+  }}
+  className={`px-3 py-1 rounded-full text-sm font-semibold transition ${
+    patient.status === "Active"
+      ? "bg-green-100 text-green-700"
+      : "bg-blue-100 text-blue-700"
+  }`}
+>
+  {patient.status}
+</button>
 
-                </td>
+</td>
 
                 <td className="text-center p-4">
 
@@ -336,6 +379,11 @@ const filteredPatients = patients.filter((patient) => {
       />
 
     </div>
+    <AddPatientModal
+  isOpen={showAddModal}
+  onClose={() => setShowAddModal(false)}
+  onSave={handleAddPatient}
+/>
 
   </div>
 );
