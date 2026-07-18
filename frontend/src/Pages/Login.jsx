@@ -49,11 +49,11 @@ const [form, setForm] = useState({
 };
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
+    <div className="min-h-screen flex bg-slate-50 border-8 border-amber-50">
 
       {/* LEFT PANEL */}
 
-      <div className="hidden lg:flex w-1/2 bg-linear-to-br from-blue-700 via-indigo-700 to-slate-900 text-white p-16 flex-col justify-between">
+      <div className="hidden lg:flex w-1/2 bg-linear-to-br from-indigo-700 to-fuchsia-600 to-slate-900 text-white p-16 flex-col justify-between">
 
         <div>
           <h1 className="text-5xl font-extrabold leading-tight">
@@ -100,14 +100,19 @@ const [form, setForm] = useState({
 
       {/* RIGHT PANEL */}
 
-      <div className="flex-1 flex justify-center items-center px-8">
+     <div
+      className="flex-1 flex justify-center items-center px-8 bg-cover bg-center bg-no-repeat"
+      style={{
+      backgroundImage: "url('/hospital-bg.jpg')",
+      }}
+      >
 
-        <div className="bg-white w-full max-w-md rounded-3xl shadow-xl border border-gray-200 p-10">
+        <div className="bg-white/10 backdrop-blur-lg w-full max-w-md rounded-3xl shadow-xl border border-white/20 p-10">
 
-          <div className="text-center">
+          <div className="text-center ">
 
-            <div className="w-20 h-20 rounded-full bg-blue-100 mx-auto flex items-center justify-center text-4xl">
-              <img src="/logo.png" alt="logo" />
+            <div className="w-30 h-17 rounded-4xl bg-blue-100 mx-auto flex items-center justify-center text-6xl border-2 ">
+              <img className="rounded-full" src="/logo.png" alt="logo" />
             </div>
 
             <h2 className="text-3xl font-bold mt-6">

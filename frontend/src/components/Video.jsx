@@ -1,6 +1,8 @@
     import React from "react";
+    import { useNavigate } from "react-router-dom";
 
     export default function HeroSection() {
+        const navigate = useNavigate();
     return (
         <div className="relative h-screen w-full overflow-hidden">
 
@@ -27,14 +29,17 @@
             </p>
 
             <div className="mt-8 flex gap-6 animate-fadeIn delay-300">
-            <button className="px-6 py-3 rounded-full font-semibold text-slate-200 
-                    bg-gradient-to-r from-indigo-800 to-fuchsia-600 
-                    shadow-[0_0_15px_rgba(139,92,246,0.4)] 
-                    transition-all duration-300 
-                    hover:scale-105 hover:shadow-[0_0_25px_rgba(217,70,239,0.6)] 
-                    hover:text-white">
-                Start Monitoring
-            </button>
+<button
+  onClick={() => navigate("/live-monitoring")}
+  className="px-6 py-3 rounded-full font-semibold text-slate-200 
+             bg-gradient-to-r from-indigo-800 to-fuchsia-600 
+             shadow-[0_0_15px_rgba(139,92,246,0.4)] 
+             transition-all duration-300 
+             hover:scale-105 hover:shadow-[0_0_25px_rgba(217,70,239,0.6)] 
+             hover:text-white"
+>
+  Start Monitoring
+</button>
 
             {/* <button className="px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-full border border-white/40 backdrop-blur-lg">
                 Dashboard Demo

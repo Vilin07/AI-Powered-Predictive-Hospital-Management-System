@@ -94,6 +94,7 @@ export default function AlertsOverview() {
             {/* CTA Button */}
             <div className="mt-8">
               <button
+                onClick={() => window.location.href = "/alerts"}
                 className="
                   px-8 py-3 rounded-full font-semibold text-white text-lg
                   bg-gradient-to-r from-indigo-600 to-fuchsia-500

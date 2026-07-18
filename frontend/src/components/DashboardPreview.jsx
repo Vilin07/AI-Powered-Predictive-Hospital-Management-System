@@ -1,6 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function DashboardPreview() {
+  const navigate = useNavigate();
   return (
     <>
       {/* PROFESSIONAL FULL-SCREEN DASHBOARD PREVIEW */}
@@ -73,6 +75,7 @@ export default function DashboardPreview() {
 
           {/* CTA Button */}
           <button
+            onClick={() => navigate("/dashboard")}
             className="
               mt-14 px-10 py-4 rounded-full
               text-white font-semibold text-lg

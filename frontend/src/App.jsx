@@ -95,21 +95,18 @@ function App() {
   <Route path="/live-monitoring" element={<LiveMonitoring />} />
   <Route path="/about" element={<About />} />
   <Route path="/patients" element={<Patients />} />
-  <Route 
- path="/profile" 
- element={<Profile />} 
-/>
+  <Route path="/profile" element={<Profile />} />
+
   <Route
-  path="/staff"
-  element={
-    <RoleProtectedRoute
-      allowedRoles={["Administrator"]}
-    >
-      <Staff />
-    </RoleProtectedRoute>
-  }
-/>
+    path="/staff"
+    element={
+      <RoleProtectedRoute allowedRoles={["Administrator"]}>
+        <Staff />
+      </RoleProtectedRoute>
+    }
+  />
 </Route>
+
 
 <Route
   path="/register"
